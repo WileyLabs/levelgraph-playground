@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>LevelGraph Playground</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.css" />
+</head>
+<body>
+  <div class="ui container">
+    <div class="ui form">
+      <div class="ui field">
+        <label>JSON-LD</label>
+        <textarea id="input">{
+  "@context": {
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "homepage": {
+      "@id": "http://xmlns.com/foaf/0.1/homepage",
+      "@type": "@id"
+    }
+  },
+  "@id": "http://manu.sporny.org#person",
+  "name": "Manu Sporny",
+  "homepage": "http://manu.sporny.org/"
+}</textarea>
+      </div>
+      <button class="ui button" id="put-button">put</button>
+    </div>
+  </div>
+
+  <script src="dist/index.js"></script>
+</body>
+</html>
