@@ -39,6 +39,23 @@ new Vue({
       object: ''
     }
   },
+  computed: {
+    actual_filter: function() {
+      var spo = {
+        subject: this.filter.subject.trim(),
+        predicate: this.filter.predicate.trim(),
+        // objects are stored in levelgraph (at least via the JSON-LD addon) as strings in quotes
+        object: '"' + this.filter.object.trim()
+                  .replace(/^\"/, '').replace(/\"$/, '') + '"'
+      };
+
+      if (spo.subject === '') delete spo.subject;
+      if (spo.predicate === '') delete spo.predicate;
+      if (spo.object === '""') delete spo.object;
+
+      return spo;
+    }
+  },
   created: function() {
     this.displayTriples({});
   },
@@ -58,20 +75,7 @@ new Vue({
       });
     },
     applyFilter: function() {
-      var spo = {
-        subject: this.filter.subject.trim(),
-        predicate: this.filter.predicate.trim(),
-        // objects are stored in levelgraph (at least via the JSON-LD addon) as strings in quotes
-        // TODO: turn into computed property
-        object: '"' + this.filter.object.trim()
-                  .replace(/^\"/, '').replace(/\"$/, '') + '"'
-      };
-
-      if (spo.subject === '') delete spo.subject;
-      if (spo.predicate === '') delete spo.predicate;
-      if (spo.object === '""') delete spo.object;
-
-      this.displayTriples(spo);
+      this.displayTriples(this.actual_filter);
     }
   }
 });
