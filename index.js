@@ -16,15 +16,17 @@ window.db = db;
 
 var default_doc = {
   "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    }
+    "@vocab": "http://xmlns.com/foaf/0.1/",
   },
-  "@id": "http://manu.sporny.org#person",
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
+  "@id": "http://bigbluehat.com/#",
+  "name": "BigBlueHat",
+  "knows": [
+    {
+      "@id": "http://manu.sporny.org#person",
+      "name": "Manu Sporny",
+      "homepage": "http://manu.sporny.org/"
+    }
+  ]
 };
 
 new Vue({
