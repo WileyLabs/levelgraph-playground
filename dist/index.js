@@ -56,6 +56,23 @@ document.getElementById('put-button').addEventListener('click', function() {
 
 displayTriples({});
 
+document.getElementById('search')
+  .addEventListener('click', function() {
+    var spo = {
+      subject: document.getElementById('search-subject').value,
+      predicate: document.getElementById('search-predicate').value,
+      // objects are stored in levelgraph (at least via the JSON-LD addon) as strings in quotes
+      object: '"' + document.getElementById('search-object').value.replace(/^\"/, '').replace(/\"$/, '') + '"'
+    };
+
+    if (spo.subject === '') delete spo.subject;
+    if (spo.predicate === '') delete spo.predicate;
+    if (spo.object === '""') delete spo.object;
+
+    console.log('spo', spo);
+    displayTriples(spo);
+  });
+
 },{"level-js":2,"levelgraph":28,"levelgraph-jsonld":18,"levelup":67}],2:[function(require,module,exports){
 (function (Buffer){
 module.exports = Level
