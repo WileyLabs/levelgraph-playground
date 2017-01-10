@@ -28,12 +28,12 @@ var default_doc = {
   "homepage": "http://manu.sporny.org/"
 };
 
-var app = new Vue({
+new Vue({
   el: '#app',
   data: {
     input: default_doc,
     table: [],
-    filter_by: {
+    filter: {
       subject: '',
       predicate: '',
       object: ''
@@ -57,13 +57,13 @@ var app = new Vue({
         self.displayTriples({});
       });
     },
-    filter: function() {
+    applyFilter: function() {
       var spo = {
-        subject: this.filter_by.subject.trim(),
-        predicate: this.filter_by.predicate.trim(),
+        subject: this.filter.subject.trim(),
+        predicate: this.filter.predicate.trim(),
         // objects are stored in levelgraph (at least via the JSON-LD addon) as strings in quotes
         // TODO: turn into computed property
-        object: '"' + this.filter_by.object.trim()
+        object: '"' + this.filter.object.trim()
                   .replace(/^\"/, '').replace(/\"$/, '') + '"'
       };
 
@@ -71,7 +71,6 @@ var app = new Vue({
       if (spo.predicate === '') delete spo.predicate;
       if (spo.object === '""') delete spo.object;
 
-      console.log('spo', spo);
       this.displayTriples(spo);
     }
   }
