@@ -25,23 +25,23 @@
           <th>subject</th>
           <th>predicate</th>
           <th>object
-            <button @click="applyFilter()" class="ui right floated tiny button">Search</button>
+            <button @click="applyFilter()" class="ui right floated tiny button">Filter</button>
           </th>
         </tr>
         <tr>
           <th>
             <div class="ui input">
-              <input v-model="filter.subject">
+              <input v-model="filter.subject" @keyup.enter="applyFilter()">
             </div>
           </th>
           <th>
             <div class="ui input">
-              <input v-model="filter.predicate">
+              <input v-model="filter.predicate" @keyup.enter="applyFilter()">
             </div>
           </th>
           <th>
             <div class="ui input">
-              <input v-model="filter.object">
+              <input v-model="filter.object" @keyup.enter="applyFilter()">
             </div>
           </th>
         </tr>
