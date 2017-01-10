@@ -38,8 +38,8 @@ function loadSPOTable(list) {
   });
 }
 
-function displayAllTriples() {
-  db.get({}, function(err, list) {
+function displayTriples(spo) {
+  db.get(spo, function(err, list) {
     loadSPOTable(list);
   });
 }
@@ -50,11 +50,11 @@ document.getElementById('put-button').addEventListener('click', function() {
   db.jsonld.put(JSON.parse($input.value), function(err, obj) {
     // do something after the obj is inserted
     console.log(err, obj);
-    displayAllTriples();
+    displayTriples({});
   });
 });
 
-displayAllTriples();
+displayTriples({});
 
 },{"level-js":2,"levelgraph":28,"levelgraph-jsonld":18,"levelup":67}],2:[function(require,module,exports){
 (function (Buffer){
