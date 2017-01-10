@@ -5,42 +5,53 @@
   <meta name="viewport" content="width=device-width">
   <title>LevelGraph Playground</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.css" />
+  <style>
+  [v-cloak] {display: none}
+  </style>
 </head>
 <body>
-  <div class="ui container">
+  <div class="ui container" id="app">
     <div class="ui form">
       <div class="ui field">
         <label>JSON-LD</label>
-        <textarea id="input">{
-  "@context": {
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "homepage": {
-      "@id": "http://xmlns.com/foaf/0.1/homepage",
-      "@type": "@id"
-    }
-  },
-  "@id": "http://manu.sporny.org#person",
-  "name": "Manu Sporny",
-  "homepage": "http://manu.sporny.org/"
-}</textarea>
+        <textarea v-model="input"></textarea>
       </div>
-      <button class="ui button" id="put-button">put</button>
+      <button class="ui button" @click="put()">put</button>
     </div>
 
-    <table class="ui table" id="spo-table">
+    <table class="ui table">
       <thead>
         <tr>
           <th>subject</th>
           <th>predicate</th>
-          <th>object <button id="search" class="ui right floated tiny button">Search</button></th>
+          <th>object
+            <button @click="filter()" class="ui right floated tiny button">Search</button>
+          </th>
         </tr>
         <tr>
-          <th><div class="ui input"><input id="search-subject"></div></th>
-          <th><div class="ui input"><input id="search-predicate"></div></th>
-          <th><div class="ui input"><input id="search-object"></div></th>
+          <th>
+            <div class="ui input">
+              <input v-model="filter_by.subject">
+            </div>
+          </th>
+          <th>
+            <div class="ui input">
+              <input v-model="filter_by.predicate">
+            </div>
+          </th>
+          <th>
+            <div class="ui input">
+              <input v-model="filter_by.object">
+            </div>
+          </th>
         </tr>
       </thead>
-      <tbody>
+      <tbody v-cloak>
+        <tr v-for="spo in table">
+          <td>{{spo.subject}}</td>
+          <td>{{spo.predicate}}</td>
+          <td>{{spo.object}}</td>
+        </tr>
       </tbody>
     </table>
   </div>
