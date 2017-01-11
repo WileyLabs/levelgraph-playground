@@ -102,6 +102,19 @@ new Vue({
     },
     changeTab: function(tab) {
       this.current_tab = tab;
+    },
+    removeSPO: function(spo, idx) {
+      var self = this;
+      // remove it from the database
+      db.del(spo, function(err) {
+        if (err) {
+          console.error(err);
+        } else {
+          // remove it from the page/app state
+          self.table.splice(idx, 1);
+        }
+      });
+      // TODO: switch to the changes feed once that's a thing
     }
   }
 });

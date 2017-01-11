@@ -71,10 +71,15 @@
         </tr>
       </thead>
       <tbody v-cloak>
-        <tr v-for="spo in table">
+        <tr v-for="(spo, idx) in table">
           <td>{{spo.subject}}</td>
           <td>{{spo.predicate}}</td>
-          <td>{{spo.object}}</td>
+          <td>
+            {{spo.object}}
+            <div class="ui right floated tiny mini basic red icon button" @click="removeSPO(spo, idx)">
+              <i class="trash icon"></i>
+            </div>
+          </td>
         </tr>
       </tbody>
     </table>
