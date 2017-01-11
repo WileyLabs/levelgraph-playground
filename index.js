@@ -38,7 +38,8 @@ new Vue({
       subject: '',
       predicate: '',
       object: ''
-    }
+    },
+    current_tab: 'json-ld'
   },
   computed: {
     actual_filter: function() {
@@ -77,6 +78,9 @@ new Vue({
     },
     applyFilter: function() {
       this.displayTriples(this.actual_filter);
+    },
+    changeTab: function(tab) {
+      this.current_tab = tab;
     }
   }
 });
