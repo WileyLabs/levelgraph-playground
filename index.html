@@ -10,6 +10,9 @@
   [v-cloak] {display: none}
   .tabular.menu .item {cursor: pointer}
   #app {margin: 1%}
+  .ui.button.hover-hidden {display: none}
+  tr:hover .ui.button.hover-hidden {display: inherit}
+  .compact.table td.tight {padding: 0}
   </style>
 </head>
 <body>
@@ -43,30 +46,31 @@
       <button class="ui button" @click="put()">put</button>
     </div>
 
-    <table class="ui table">
+    <table class="ui compact table">
       <thead>
         <tr>
           <th>subject</th>
           <th>predicate</th>
-          <th>object
-            <button @click="applyFilter()" class="ui right floated tiny button">Filter</button>
-          </th>
+          <th colspan="2">object</th>
         </tr>
         <tr>
           <th>
-            <div class="ui input">
+            <div class="ui fluid input">
               <input v-model="filter.subject" @keyup.enter="applyFilter()">
             </div>
           </th>
           <th>
-            <div class="ui input">
+            <div class="ui fluid input">
               <input v-model="filter.predicate" @keyup.enter="applyFilter()">
             </div>
           </th>
           <th>
-            <div class="ui input">
+            <div class="ui fluid input">
               <input v-model="filter.object" @keyup.enter="applyFilter()">
             </div>
+          </th>
+          <th>
+            <button @click="applyFilter()" class="ui right floated tiny button">Filter</button>
           </th>
         </tr>
       </thead>
@@ -74,9 +78,9 @@
         <tr v-for="(spo, idx) in table">
           <td>{{spo.subject}}</td>
           <td>{{spo.predicate}}</td>
-          <td>
-            {{spo.object}}
-            <div class="ui right floated tiny mini basic red icon button" @click="removeSPO(spo, idx)">
+          <td>{{spo.object}}</td>
+          <td class="right aligned tight">
+            <div class="ui right floated mini red icon hover-hidden button" @click="removeSPO(spo, idx)">
               <i class="trash icon"></i>
             </div>
           </td>
