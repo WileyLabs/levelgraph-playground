@@ -13,7 +13,8 @@ var db = levelgraphN3(
   levelgraphJSONLD(
     levelgraph(
       levelup('levelgraph-playgrond', {db: factory})
-    )
+    ),
+    {base: '_:'} // yeah...storing unknown @id's as blank nodes...appologies to the future...
   )
 );
 window.db = db;
