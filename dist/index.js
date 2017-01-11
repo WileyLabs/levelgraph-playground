@@ -104,6 +104,28 @@ new Vue({
     changeTab: function(tab) {
       this.current_tab = tab;
     },
+    setFilter: function(spo) {
+      // TODO: add some error handling and such
+      this.filter.subject = spo.subject;
+      this.filter.predicate = spo.predicate;
+      this.filter.object = spo.object;
+    },
+    addSPO: function() {
+      var self = this;
+      db.put(self.filter, function(err) {
+        if (err) {
+          console.error(err);
+        } else {
+          self.table.unshift(self.filter);
+          self.filter = {
+            subject: '',
+            predicate: '',
+            object: ''
+          };
+          self.applyFilter();
+        }
+      });
+    },
     removeSPO: function(spo, idx) {
       var self = this;
       // remove it from the database
