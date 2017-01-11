@@ -4,17 +4,20 @@ var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
 var levelup = require('levelup');
 var levelgraphJSONLD = require('levelgraph-jsonld');
+var levelgraphN3 = require('levelgraph-n3');
 
 var factory = function (location) { return new leveljs(location) };
 
-var db = levelgraphJSONLD(
-  levelgraph(
-    levelup('levelgraph-playgrond', {db: factory})
+var db = levelgraphN3(
+  levelgraphJSONLD(
+    levelgraph(
+      levelup('levelgraph-playgrond', {db: factory})
+    )
   )
 );
 window.db = db;
 
-var default_doc = {
+var default_jsonld = {
   "@context": {
     "@vocab": "http://xmlns.com/foaf/0.1/",
   },
@@ -29,10 +32,19 @@ var default_doc = {
   ]
 };
 
+var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
++ '<http://bigbluehat.com/#>\n'
++ '  foaf:name "BigBlueHat" ;\n'
++ '  foaf:workHomepage "http://wiley.com/" ;\n'
++ '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
+
 new Vue({
   el: '#app',
   data: {
-    input: default_doc,
+    input: {
+      jsonld: default_jsonld,
+      n3: default_n3
+    },
     table: [],
     filter: {
       subject: '',
@@ -56,6 +68,15 @@ new Vue({
       if (spo.object === '""') delete spo.object;
 
       return spo;
+    },
+    input_type: function() {
+      if (this.current_tab === 'json-ld') {
+        return 'jsonld';
+      } else if (this.current_tab === 'n3') {
+        return 'n3';
+      } else {
+        throw Error('Hrm...current_tab got messed up somehow...');
+      }
     }
   },
   created: function() {
@@ -70,7 +91,7 @@ new Vue({
     },
     put: function() {
       var self = this;
-      db.jsonld.put(this.input, function(err, obj) {
+      db[this.input_type].put(this.input[this.input_type], function(err, obj) {
         // do something after the obj is inserted
         console.log(err, obj);
         self.displayTriples({});
