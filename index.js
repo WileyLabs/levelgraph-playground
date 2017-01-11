@@ -55,17 +55,21 @@ new Vue({
   },
   computed: {
     actual_filter: function() {
+      var object = this.filter.object.trim();
+      if (object !== '' && !isNaN(object)) {
+        // search for the RDF materialized integer
+        object = '"' + String(object) + '"^^http://www.w3.org/2001/XMLSchema#integer';
+      }
       var spo = {
         subject: this.filter.subject.trim(),
         predicate: this.filter.predicate.trim(),
-        // objects are stored in levelgraph (at least via the JSON-LD addon) as strings in quotes
-        object: '"' + this.filter.object.trim()
-                  .replace(/^\"/, '').replace(/\"$/, '') + '"'
+        object: object
       };
 
+      // TODO: certainly  there's a better way to "clean" this object...later...maybe
       if (spo.subject === '') delete spo.subject;
       if (spo.predicate === '') delete spo.predicate;
-      if (spo.object === '""') delete spo.object;
+      if (spo.object === '') delete spo.object;
 
       return spo;
     },
