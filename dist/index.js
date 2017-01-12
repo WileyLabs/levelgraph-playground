@@ -44,7 +44,7 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
 
 Vue.component('code-mirror', {
-  template: '<textarea v-model="code"></textarea>',
+  template: '<textarea></textarea>',
   data: function() {
     return {
       value: ''
@@ -62,6 +62,8 @@ Vue.component('code-mirror', {
     }
   },
   created: function() {
+    // make internal state match passed in `code` value
+    this.value = this.code;
     // merge in default options
     // TODO: find a way to get at the defaults defined above
     if (!('lineNumbers' in this.options)) {
@@ -71,10 +73,13 @@ Vue.component('code-mirror', {
   mounted: function() {
     var self = this;
     this.editor = CodeMirror.fromTextArea(this.$el, this.options);
-    this.editor.setValue(this.code);
+    this.editor.setValue(this.value);
     this.editor.on('change', function(cm) {
       self.value = cm.getValue();
     });
+  },
+  destroyed: function() {
+    this.editor.toTextArea();
   },
   methods: {
     refresh: function() {
