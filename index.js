@@ -1,4 +1,7 @@
 var Vue = require('vue');
+var CodeMirror = require('codemirror');
+require('codemirror/mode/javascript/javascript');
+require('codemirror/mode/turtle/turtle');
 
 var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
@@ -18,7 +21,7 @@ var db = levelgraphN3(
 );
 window.db = db;
 
-var default_jsonld = {
+var default_jsonld = JSON.stringify({
   "@context": {
     "@vocab": "http://xmlns.com/foaf/0.1/",
   },
@@ -31,13 +34,53 @@ var default_jsonld = {
       "homepage": "http://manu.sporny.org/"
     }
   ]
-};
+}, null, 2);
 
 var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '<http://bigbluehat.com/#>\n'
 + '  foaf:name "BigBlueHat" ;\n'
 + '  foaf:workHomepage "http://wiley.com/" ;\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
+
+Vue.component('code-mirror', {
+  template: '<textarea v-model="code"></textarea>',
+  data: function() {
+    return {
+      value: ''
+    };
+  },
+  props: {
+    code: String,
+    options: {
+      type: Object,
+      default: function() {
+        return {
+          lineNumbers: true
+        };
+      }
+    }
+  },
+  created: function() {
+    // merge in default options
+    // TODO: find a way to get at the defaults defined above
+    if (!('lineNumbers' in this.options)) {
+      this.options.lineNumbers = true;
+    }
+  },
+  mounted: function() {
+    var self = this;
+    this.editor = CodeMirror.fromTextArea(this.$el, this.options);
+    this.editor.setValue(this.code);
+    this.editor.on('change', function(cm) {
+      self.value = cm.getValue();
+    });
+  },
+  methods: {
+    refresh: function() {
+      this.editor.refresh();
+    }
+  }
+});
 
 new Vue({
   el: '#app',
@@ -53,6 +96,16 @@ new Vue({
       object: ''
     },
     current_tab: 'json-ld'
+  },
+  watch: {
+    current_tab: function(v) {
+      var self = this;
+      // DOM changing...wait for it...
+      Vue.nextTick(function() {
+        // TODO: ugh...context leakage...nasty stuff
+        self.$refs[self.input_type].refresh();
+      });
+    }
   },
   computed: {
     actual_filter: function() {
@@ -96,9 +149,9 @@ new Vue({
     },
     put: function() {
       var self = this;
-      db[this.input_type].put(this.input[this.input_type], function(err, obj) {
+      // TODO: refs are handy, but this feels "off"
+      db[this.input_type].put(this.$refs[this.input_type].value, function(err, obj) {
         // do something after the obj is inserted
-        console.log(err, obj);
         self.displayTriples({});
       });
     },

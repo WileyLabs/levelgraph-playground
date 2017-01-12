@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>LevelGraph Playground</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.22.2/codemirror.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.6/semantic.css" />
   <link rel="edit-form" href="https://github.com/BigBlueHat/levelgraph-playground/edit/master/index.html" />
   <style>
@@ -39,10 +40,14 @@
             :class="{active: current_tab === 'n3'}"
             @click="changeTab('n3')">N3/Turtle</div>
         </div>
-        <textarea v-model="input.jsonld" class="ui bottom attached tab segment"
-          :class="{active: current_tab === 'json-ld'}"></textarea>
-        <textarea v-model="input.n3" class="ui bottom attached tab segment"
-          :class="{active: current_tab === 'n3'}"></textarea>
+        <div class="ui bottom attached tab segment"
+          :class="{active: current_tab === 'json-ld'}">
+          <code-mirror :code="input.jsonld" :options="{mode: 'application/ld+json'}" ref="jsonld"></code-mirror>
+        </div>
+        <div class="ui bottom attached tab segment"
+          :class="{active: current_tab === 'n3'}">
+          <code-mirror :code="input.n3" :options="{mode: 'text/turtle'}" ref="n3"></code-mirror>
+        </div>
       </div>
       <button class="ui button" @click="put()">put</button>
     </div>
