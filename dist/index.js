@@ -66,8 +66,7 @@ var db = levelgraphN3(
   levelgraphJSONLD(
     levelgraph(
       levelup('levelgraph-playgrond', {db: factory})
-    ),
-    {base: '_:'} // yeah...storing unknown @id's as blank nodes...appologies to the future...
+    )
   )
 );
 window.db = db;
@@ -93,12 +92,19 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:workHomepage "http://wiley.com/" ;\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
 
-new Vue({
+window.app = new Vue({
   el: '#app',
   data: {
     input: {
       jsonld: default_jsonld,
       n3: default_n3
+    },
+    config: {
+      jsonld: {
+        base: '',
+        preserve: true
+      },
+      n3: {}
     },
     table: [],
     filter: {
@@ -161,10 +167,24 @@ new Vue({
     put: function() {
       var self = this;
       // TODO: refs are handy, but this feels "off"
-      db[this.input_type].put(this.$refs[this.input_type].value, function(err, obj) {
-        // do something after the obj is inserted
-        self.displayTriples({});
-      });
+      if (this.input_type === 'jsonld') {
+      db[this.input_type].put(
+        this.$refs[this.input_type].value,
+        this.config[this.input_type],
+        function(err, obj) {
+          // do something after the obj is inserted
+          self.displayTriples({});
+        });
+      } else {
+        // ...the new .put() signatures no longer match between JSON-LD & N3 extensions
+        // TODO: help make them match (again)
+        db[this.input_type].put(
+          this.$refs[this.input_type].value,
+          function(err, obj) {
+            // do something after the obj is inserted
+            self.displayTriples({});
+          });
+      }
     },
     applyFilter: function() {
       this.displayTriples(this.actual_filter);
