@@ -147,19 +147,21 @@ window.app = new Vue({
     },
     addSPO: function() {
       var self = this;
-      db.put(self.filter, function(err) {
-        if (err) {
-          console.error(err);
-        } else {
-          self.table.unshift(self.filter);
-          self.filter = {
-            subject: '',
-            predicate: '',
-            object: ''
-          };
-          self.applyFilter();
-        }
-      });
+      if (self.filter.subject !== '' && self.filter.predicate !== '' && self.filter.object !== '') {
+        db.put(self.filter, function(err) {
+          if (err) {
+            console.error(err);
+          } else {
+            self.table.unshift(self.filter);
+            self.filter = {
+              subject: '',
+              predicate: '',
+              object: ''
+            };
+            self.applyFilter();
+          }
+        });
+      }
     },
     removeSPO: function(spo, idx) {
       var self = this;
