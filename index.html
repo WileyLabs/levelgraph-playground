@@ -46,10 +46,7 @@
         <div class="ui bottom attached tab segment" style="padding: inherit 0"
           :class="{active: current_tab === 'json-ld'}">
           <code-mirror :code="input.jsonld" :options="{mode: 'application/ld+json'}" ref="jsonld"></code-mirror>
-          <div class="ui borderless bottom attached menu">
-            <div class="item">
-              <button class="ui button" @click="put()">put</button>
-            </div>
+          <div class="ui bottom attached menu">
             <div class="item">
               <div class="ui labeled input">
                 <label for="config-jsonld-base" class="ui basic label">base</label>
@@ -61,6 +58,12 @@
                 <input type="checkbox" v-model="config.jsonld.preserve">
                 <label>preserve</label>
               </div>
+            </div>
+            <div class="item">
+              <button class="ui positive button" @click="put()">put</button>
+            </div>
+            <div class="item">
+              <button class="ui negative button" @click="del()">delete</button>
             </div>
           </div>
         </div>
