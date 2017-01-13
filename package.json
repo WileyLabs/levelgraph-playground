@@ -1,6 +1,6 @@
 {
   "name": "levelgraph-playground",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Playing with levelgraph.io and friends.",
   "repository": "https://github.com/BigBlueHat/levelgraph",
   "main": "index.js",
