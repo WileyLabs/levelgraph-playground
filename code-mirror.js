@@ -1,8 +1,18 @@
 var Vue = require('vue');
 
 var CodeMirror = require('codemirror');
+// modes
 require('codemirror/mode/javascript/javascript');
 require('codemirror/mode/turtle/turtle');
+// linters
+require('codemirror/addon/lint/lint');
+require('codemirror/addon/lint/json-lint');
+
+const default_options = {
+  lineNumbers: true,
+  gutters: ["CodeMirror-lint-markers"],
+  lint: true
+};
 
 Vue.component('code-mirror', {
   template: '<textarea></textarea>',
@@ -16,9 +26,7 @@ Vue.component('code-mirror', {
     options: {
       type: Object,
       default: function() {
-        return {
-          lineNumbers: true
-        };
+        return default_options;
       }
     }
   },
@@ -26,9 +34,10 @@ Vue.component('code-mirror', {
     // make internal state match passed in `code` value
     this.value = this.code;
     // merge in default options
-    // TODO: find a way to get at the defaults defined above
-    if (!('lineNumbers' in this.options)) {
-      this.options.lineNumbers = true;
+    for (var attrname in default_options) {
+      if (!(attrname in this.options)) {
+        this.options[attrname] = default_options[attrname];
+      }
     }
   },
   mounted: function() {
