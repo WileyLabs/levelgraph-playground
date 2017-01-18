@@ -137,9 +137,7 @@ window.app = new Vue({
       var self = this;
       // TODO: this is JSON-LD only...time to move stuff around...
       db[this.input_type].del(
-        // TODO: move this JSON.parse into levelgraph-jsonld
-        //       re: https://github.com/mcollina/levelgraph-jsonld/issues/50
-        JSON.parse(this.$refs[this.input_type].value),
+        this.$refs[this.input_type].value,
         this.config[this.input_type],
         function(err, obj) {
           // do something after the obj is inserted
