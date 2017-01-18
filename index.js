@@ -49,7 +49,7 @@ window.app = new Vue({
     config: {
       jsonld: {
         base: '',
-        preserve: true
+        overwrite: false
       },
       n3: {}
     },
