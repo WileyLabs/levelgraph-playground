@@ -1,6 +1,6 @@
 {
   "name": "levelgraph-playground",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Playing with levelgraph.io and friends.",
   "repository": "https://github.com/BigBlueHat/levelgraph",
   "main": "index.js",
@@ -11,8 +11,7 @@
     "levelgraph-jsonld": "^1.0.2",
     "levelgraph-n3": "^1.2.0",
     "levelup": "^1.3.3",
-    "vue": "^2.1.8",
-    "vue-codemirror": "^2.1.7"
+    "vue": "^2.1.8"
   },
   "browser": {
     "vue": "vue/dist/vue.common"
