@@ -1,5 +1,5 @@
 var Vue = require('vue');
-require('./code-mirror');
+require('./code-mirror.js');
 
 var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
