@@ -134,7 +134,10 @@
     </table>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonlint/1.6.0/jsonlint.min.js"></script>
-  <script src="dist/index.js"></script>
+  <script src="system.js"></script>
+  <script src="config.js"></script>
+  <script>System.import('./index.js').catch(console.error.bind(console));</script>
+  <!--  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsonlint/1.6.0/jsonlint.min.js"></script>
+  <script src="dist/index.js"></script>-->
 </body>
 </html>
