@@ -144,6 +144,19 @@ window.app = new Vue({
           self.displayTriples({});
         });
     },
+    empty: function() {
+      var self = this;
+      // this...is dangerous...unless demo
+      if (confirm("Really? You're sure?")) {
+        db.get({}, function(err, list) {
+          if (err) console.error(err);
+          db.del(list, function(err) {
+            if (err) console.error(err);
+            self.displayTriples({});
+          });
+        });
+      }
+    },
     applyFilter: function() {
       this.displayTriples(this.actual_filter);
     },
