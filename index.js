@@ -1,5 +1,4 @@
 var Vue = require('vue');
-require('./code-mirror');
 
 var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
@@ -38,6 +37,8 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:name "BigBlueHat" ;\n'
 + '  foaf:workHomepage "http://wiley.com/" ;\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
+
+Vue.component('code-mirror', require('./code-mirror'));
 
 window.app = new Vue({
   el: '#app',

@@ -5713,8 +5713,6 @@ function hasOwnProperty(obj, prop) {
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{"./support/isBuffer":28,"_process":12,"inherits":27}],30:[function(require,module,exports){
-var Vue = require('vue');
-
 var CodeMirror = require('codemirror');
 // modes
 require('codemirror/mode/javascript/javascript');
@@ -5729,7 +5727,7 @@ const default_options = {
   lint: true
 };
 
-Vue.component('code-mirror', {
+module.exports = {
   template: '<textarea></textarea>',
   data: function() {
     return {
@@ -5771,11 +5769,10 @@ Vue.component('code-mirror', {
       this.editor.refresh();
     }
   }
-});
+}
 
-},{"codemirror":41,"codemirror/addon/lint/json-lint":39,"codemirror/addon/lint/lint":40,"codemirror/mode/javascript/javascript":42,"codemirror/mode/turtle/turtle":43,"vue":148}],31:[function(require,module,exports){
+},{"codemirror":41,"codemirror/addon/lint/json-lint":39,"codemirror/addon/lint/lint":40,"codemirror/mode/javascript/javascript":42,"codemirror/mode/turtle/turtle":43}],31:[function(require,module,exports){
 var Vue = require('vue');
-require('./code-mirror');
 
 var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
@@ -5814,6 +5811,8 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:name "BigBlueHat" ;\n'
 + '  foaf:workHomepage "http://wiley.com/" ;\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
+
+Vue.component('code-mirror', require('./code-mirror'));
 
 window.app = new Vue({
   el: '#app',

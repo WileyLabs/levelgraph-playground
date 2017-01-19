@@ -1,5 +1,3 @@
-var Vue = require('vue');
-
 var CodeMirror = require('codemirror');
 // modes
 require('codemirror/mode/javascript/javascript');
@@ -14,7 +12,7 @@ const default_options = {
   lint: true
 };
 
-Vue.component('code-mirror', {
+module.exports = {
   template: '<textarea></textarea>',
   data: function() {
     return {
@@ -56,4 +54,4 @@ Vue.component('code-mirror', {
       this.editor.refresh();
     }
   }
-});
+}
