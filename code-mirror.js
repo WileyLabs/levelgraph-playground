@@ -6,10 +6,61 @@ require('codemirror/mode/turtle/turtle');
 require('codemirror/addon/lint/lint');
 require('codemirror/addon/lint/json-lint');
 
+// custom json-ld hinter
+require('codemirror/addon/hint/show-hint');
+
+// TODO: move this into a CodeMirror addon
+function suggest(cm, pred) {
+  var terms = [
+    '@base',
+    '@container', '@context',
+    '@graph',
+    '@id',
+    '@language', '@list',
+    '@reverse',
+    '@set',
+    '@type',
+    '@vocab'
+  ];
+  if (!pred || pred()) setTimeout(function() {
+    if (!cm.state.completionActive) {
+      cm.showHint({
+        hint: function (cm, options) {
+          var cur = cm.getCursor(),
+              token = cm.getTokenAt(cur);
+          var start = token.start - 1,
+              end = token.end;
+          var list = terms;
+          if (token.type === 'property') {
+            let search = token.string.match(/\w/);
+            if (search !== null) {
+              list = terms.filter(function(t) {
+                if (t.indexOf(search) > -1) {
+                  return t;
+                }
+              });
+            }
+            return {
+                list: list, //value[i].listCallback(),
+                from: CodeMirror.Pos(cur.line, start+2),
+                to: CodeMirror.Pos(cur.line, end-1)
+            };
+          }
+        }
+      });
+    }
+  }, 100);
+  return CodeMirror.Pass;
+}
+
 const default_options = {
   lineNumbers: true,
   gutters: ["CodeMirror-lint-markers"],
-  lint: true
+  lint: true,
+  extraKeys: {
+    "'@'": suggest,
+    "Ctrl-Space": suggest
+  }
 };
 
 module.exports = {
