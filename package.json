@@ -6,6 +6,7 @@
   "main": "index.js",
   "dependencies": {
     "codemirror": "^5.22.2",
+    "codemirror-jsonld-hint": "github:WileyLabs/codemirror-jsonld-hint",
     "level-js": "^2.2.4",
     "levelgraph": "^2.0.0",
     "levelgraph-jsonld": "^1.0.2",

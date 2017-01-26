@@ -5722,7 +5722,7 @@ require('codemirror/addon/lint/lint');
 require('codemirror/addon/lint/json-lint');
 
 // custom json-ld hinter
-require('./jsonld-hint.js');
+require('codemirror-jsonld-hint');
 
 const default_options = {
   lineNumbers: true,
@@ -5778,7 +5778,7 @@ module.exports = {
   }
 }
 
-},{"./jsonld-hint.js":32,"codemirror":43,"codemirror/addon/lint/json-lint":41,"codemirror/addon/lint/lint":42,"codemirror/mode/javascript/javascript":44,"codemirror/mode/turtle/turtle":45}],31:[function(require,module,exports){
+},{"codemirror":43,"codemirror-jsonld-hint":39,"codemirror/addon/lint/json-lint":41,"codemirror/addon/lint/lint":42,"codemirror/mode/javascript/javascript":44,"codemirror/mode/turtle/turtle":45}],31:[function(require,module,exports){
 var Vue = require('vue');
 
 var levelgraph = require('levelgraph');
@@ -5986,66 +5986,6 @@ window.app = new Vue({
 });
 
 },{"./code-mirror":30,"level-js":86,"levelgraph":107,"levelgraph-jsonld":95,"levelgraph-n3":96,"levelup":117,"vue":150}],32:[function(require,module,exports){
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(
-      require("codemirror/lib/codemirror"),
-      require("codemirror/addon/hint/show-hint")
-    );
-  else if (typeof define == "function" && define.amd) // AMD
-    define([
-      "codemirror/lib/codemirror",
-      "codemirror/addon/hint/show-hint"
-    ], mod);
-  else // Plain browser env
-    mod(CodeMirror);
-})(function(CodeMirror) {
-
-  CodeMirror.registerHelper("hint", "jsonld", function(cm, pred) {
-    var terms = [
-      '@base',
-      '@container', '@context',
-      '@graph',
-      '@id',
-      '@language', '@list',
-      '@reverse',
-      '@set',
-      '@type',
-      '@vocab'
-    ];
-    if (!pred || pred()) setTimeout(function() {
-      if (!cm.state.completionActive) {
-        cm.showHint({
-          hint: function (cm, options) {
-            var cur = cm.getCursor(),
-                token = cm.getTokenAt(cur);
-            var start = token.start - 1,
-                end = token.end;
-            var list = terms;
-            if (token.type === 'property') {
-              let search = token.string.match(/\w/);
-              if (search !== null) {
-                list = terms.filter(function(t) {
-                  if (t.indexOf(search) > -1) {
-                    return t;
-                  }
-                });
-              }
-              return {
-                  list: list, //value[i].listCallback(),
-                  from: CodeMirror.Pos(cur.line, start+2),
-                  to: CodeMirror.Pos(cur.line, end-1)
-              };
-            }
-          }
-        });
-      }
-    }, 100);
-    return CodeMirror.Pass;
-  });
-});
-
-},{"codemirror/addon/hint/show-hint":40,"codemirror/lib/codemirror":43}],33:[function(require,module,exports){
 (function (process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
 
@@ -6129,7 +6069,7 @@ AbstractChainedBatch.prototype.write = function (options, callback) {
 
 module.exports = AbstractChainedBatch
 }).call(this,require('_process'))
-},{"_process":12}],34:[function(require,module,exports){
+},{"_process":12}],33:[function(require,module,exports){
 (function (process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
 
@@ -6182,7 +6122,7 @@ AbstractIterator.prototype.end = function (callback) {
 module.exports = AbstractIterator
 
 }).call(this,require('_process'))
-},{"_process":12}],35:[function(require,module,exports){
+},{"_process":12}],34:[function(require,module,exports){
 (function (Buffer,process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
 
@@ -6442,7 +6382,7 @@ module.exports.AbstractIterator     = AbstractIterator
 module.exports.AbstractChainedBatch = AbstractChainedBatch
 
 }).call(this,{"isBuffer":require("../../../../AppData/Roaming/npm/node_modules/browserify/node_modules/is-buffer/index.js")},require('_process'))
-},{"../../../../AppData/Roaming/npm/node_modules/browserify/node_modules/is-buffer/index.js":9,"./abstract-chained-batch":33,"./abstract-iterator":34,"_process":12,"xtend":36}],36:[function(require,module,exports){
+},{"../../../../AppData/Roaming/npm/node_modules/browserify/node_modules/is-buffer/index.js":9,"./abstract-chained-batch":32,"./abstract-iterator":33,"_process":12,"xtend":35}],35:[function(require,module,exports){
 module.exports = extend
 
 function extend() {
@@ -6461,7 +6401,7 @@ function extend() {
     return target
 }
 
-},{}],37:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function (process,global){
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -11754,9 +11694,9 @@ Object.defineProperty(exports, '__esModule', { value: true });
 })));
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":12}],38:[function(require,module,exports){
+},{"_process":12}],37:[function(require,module,exports){
 arguments[4][3][0].apply(exports,arguments)
-},{"buffer":4,"dup":3}],39:[function(require,module,exports){
+},{"buffer":4,"dup":3}],38:[function(require,module,exports){
 'use strict'
 
 var Writable = require('readable-stream').Writable
@@ -11809,7 +11749,68 @@ CallbackStream.obj = function (options, callback) {
 
 module.exports = CallbackStream
 
-},{"inherits":69,"readable-stream":138}],40:[function(require,module,exports){
+},{"inherits":69,"readable-stream":138}],39:[function(require,module,exports){
+(function(mod) {
+  if (typeof exports == "object" && typeof module == "object") // CommonJS
+    mod(
+      require("codemirror/lib/codemirror"),
+      require("codemirror/addon/hint/show-hint")
+    );
+  else if (typeof define == "function" && define.amd) // AMD
+    define([
+      "codemirror/lib/codemirror",
+      "codemirror/addon/hint/show-hint"
+    ], mod);
+  else // Plain browser env
+    mod(CodeMirror);
+})(function(CodeMirror) {
+
+  CodeMirror.registerHelper("hint", "jsonld", function(cm, pred) {
+    var terms = [
+      '@base',
+      '@container', '@context',
+      '@graph',
+      '@id',
+      '@language', '@list',
+      '@reverse',
+      '@set',
+      '@type',
+      '@vocab'
+    ];
+    setTimeout(function() {
+      if (!cm.state.completionActive) {
+        cm.showHint({
+          completeSingle: false,
+          hint: function (cm, options) {
+            var cur = cm.getCursor(),
+                token = cm.getTokenAt(cur);
+            var start = token.start - 1,
+                end = token.end;
+            var list = terms;
+            if (token.type === 'property') {
+              var search = token.string.match(/[@]?\w+/);
+              if (search !== null) {
+                list = terms.filter(function(t) {
+                  if (t.indexOf(search) > -1) {
+                    return t;
+                  }
+                });
+              }
+              return {
+                list: list,
+                from: CodeMirror.Pos(cur.line, start+2),
+                to: CodeMirror.Pos(cur.line, end-1)
+              };
+            }
+          }
+        });
+      }
+    }, 100);
+    return CodeMirror.Pass;
+  });
+});
+
+},{"codemirror/addon/hint/show-hint":40,"codemirror/lib/codemirror":43}],40:[function(require,module,exports){
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
 // Distributed under an MIT license: http://codemirror.net/LICENSE
 
@@ -14271,6 +14272,9 @@ function buildLineContent(cm, lineView) {
                  col: 0, pos: 0, cm: cm,
                  trailingSpace: false,
                  splitSpaces: (ie || webkit) && cm.getOption("lineWrapping")}
+  // hide from accessibility tree
+  content.setAttribute("role", "presentation")
+  builder.pre.setAttribute("role", "presentation")
   lineView.measure = {}
 
   // Iterate over the logical lines that make up this visual line.
@@ -18109,6 +18113,7 @@ function markText(doc, from, to, options, type) {
     // Showing up as a widget implies collapsed (widget replaces text)
     marker.collapsed = true
     marker.widgetNode = elt("span", [marker.replacedWith], "CodeMirror-widget")
+    marker.widgetNode.setAttribute("role", "presentation") // hide from accessibility tree
     if (!options.handleMouseEvents) { marker.widgetNode.setAttribute("cm-ignore-events", "true") }
     if (options.insertLeft) { marker.widgetNode.insertLeft = true }
   }
@@ -18456,7 +18461,6 @@ Doc.prototype = createObj(BranchChunk.prototype, {
   clearGutter: docMethodOp(function(gutterID) {
     var this$1 = this;
 
-    var i = this.first
     this.iter(function (line) {
       if (line.gutterMarkers && line.gutterMarkers[gutterID]) {
         changeLine(this$1, line, "gutter", function () {
@@ -18465,7 +18469,6 @@ Doc.prototype = createObj(BranchChunk.prototype, {
           return true
         })
       }
-      ++i
     })
   }),
 
@@ -21630,7 +21633,7 @@ CodeMirror.fromTextArea = fromTextArea
 
 addLegacyProps(CodeMirror)
 
-CodeMirror.version = "5.22.2"
+CodeMirror.version = "5.23.0"
 
 return CodeMirror;
 
@@ -22143,9 +22146,9 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
     if (type == ":") return cont(expressionNoComma);
     if (type == "(") return pass(functiondef);
   }
-  function commasep(what, end) {
+  function commasep(what, end, sep) {
     function proceed(type, value) {
-      if (type == ",") {
+      if (sep ? sep.indexOf(type) > -1 : type == ",") {
         var lex = cx.state.lexical;
         if (lex.info == "call") lex.pos = (lex.pos || 0) + 1;
         return cont(function(type, value) {
@@ -22179,15 +22182,17 @@ CodeMirror.defineMode("javascript", function(config, parserConfig) {
   function typeexpr(type) {
     if (type == "variable") {cx.marked = "variable-3"; return cont(afterType);}
     if (type == "string" || type == "number" || type == "atom") return cont(afterType);
-    if (type == "{") return cont(commasep(typeprop, "}"))
+    if (type == "{") return cont(pushlex("}"), commasep(typeprop, "}", ",;"), poplex)
     if (type == "(") return cont(commasep(typearg, ")"), maybeReturnType)
   }
   function maybeReturnType(type) {
     if (type == "=>") return cont(typeexpr)
   }
-  function typeprop(type) {
+  function typeprop(type, value) {
     if (type == "variable" || cx.style == "keyword") {
       cx.marked = "property"
+      return cont(typeprop)
+    } else if (value == "?") {
       return cont(typeprop)
     } else if (type == ":") {
       return cont(typeexpr)
@@ -23034,8 +23039,8 @@ AbstractChainedBatch.prototype.write = function (options, callback) {
 module.exports = AbstractChainedBatch
 }).call(this,require('_process'))
 },{"_process":12}],51:[function(require,module,exports){
-arguments[4][34][0].apply(exports,arguments)
-},{"_process":12,"dup":34}],52:[function(require,module,exports){
+arguments[4][33][0].apply(exports,arguments)
+},{"_process":12,"dup":33}],52:[function(require,module,exports){
 (function (Buffer,process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
 
@@ -37397,7 +37402,7 @@ var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./iterator":87,"abstract-leveldown":35,"buffer":4,"idb-wrapper":68,"isbuffer":71,"typedarray-to-buffer":142,"util":29,"xtend":153}],87:[function(require,module,exports){
+},{"./iterator":87,"abstract-leveldown":34,"buffer":4,"idb-wrapper":68,"isbuffer":71,"typedarray-to-buffer":142,"util":29,"xtend":153}],87:[function(require,module,exports){
 var util = require('util')
 var AbstractIterator  = require('abstract-leveldown').AbstractIterator
 var ltgt = require('ltgt')
@@ -37471,7 +37476,7 @@ Iterator.prototype._next = function (callback) {
   this.callback = callback
 }
 
-},{"abstract-leveldown":35,"ltgt":122,"util":29}],88:[function(require,module,exports){
+},{"abstract-leveldown":34,"ltgt":122,"util":29}],88:[function(require,module,exports){
 (function (process){
 /* Copyright (c) 2013 LevelUP contributors
  * See list at <https://github.com/rvagg/node-levelup#contributing>
@@ -39656,7 +39661,7 @@ function levelgraphJSONLD(db, jsonldOpts) {
 
 module.exports = levelgraphJSONLD;
 
-},{"async":37,"jsonld":73,"n3/lib/N3Util":123,"uuid":145}],96:[function(require,module,exports){
+},{"async":36,"jsonld":73,"n3/lib/N3Util":123,"uuid":145}],96:[function(require,module,exports){
 
 // fix for browserify
 require('stream');
@@ -42402,7 +42407,7 @@ Navigator.prototype.values = function (cb) {
 
 module.exports = Navigator;
 
-},{"./utilities":112,"./variable":113,"callback-stream":39,"pump":131,"readable-stream":138}],110:[function(require,module,exports){
+},{"./utilities":112,"./variable":113,"callback-stream":38,"pump":131,"readable-stream":138}],110:[function(require,module,exports){
 (function (process){
 /*
 Copyright (c) 2013-2016 Matteo Collina and LevelGraph Contributors
@@ -43064,7 +43069,7 @@ function matcher(pattern) {
 
 module.exports.matcher = matcher;
 
-},{"./variable":113,"callback-stream":39,"lodash.keys":121}],113:[function(require,module,exports){
+},{"./variable":113,"callback-stream":38,"lodash.keys":121}],113:[function(require,module,exports){
 /*
 Copyright (c) 2013-2016 Matteo Collina and LevelGraph Contributors
 
@@ -44946,13 +44951,13 @@ arguments[4][14][0].apply(exports,arguments)
 arguments[4][15][0].apply(exports,arguments)
 },{"./_stream_transform":135,"core-util-is":47,"dup":15,"inherits":69}],134:[function(require,module,exports){
 arguments[4][16][0].apply(exports,arguments)
-},{"./_stream_duplex":132,"./internal/streams/BufferList":137,"_process":12,"buffer":4,"buffer-shims":38,"core-util-is":47,"dup":16,"events":6,"inherits":69,"isarray":70,"process-nextick-args":129,"string_decoder/":141,"util":2}],135:[function(require,module,exports){
+},{"./_stream_duplex":132,"./internal/streams/BufferList":137,"_process":12,"buffer":4,"buffer-shims":37,"core-util-is":47,"dup":16,"events":6,"inherits":69,"isarray":70,"process-nextick-args":129,"string_decoder/":141,"util":2}],135:[function(require,module,exports){
 arguments[4][17][0].apply(exports,arguments)
 },{"./_stream_duplex":132,"core-util-is":47,"dup":17,"inherits":69}],136:[function(require,module,exports){
 arguments[4][18][0].apply(exports,arguments)
-},{"./_stream_duplex":132,"_process":12,"buffer":4,"buffer-shims":38,"core-util-is":47,"dup":18,"events":6,"inherits":69,"process-nextick-args":129,"util-deprecate":144}],137:[function(require,module,exports){
+},{"./_stream_duplex":132,"_process":12,"buffer":4,"buffer-shims":37,"core-util-is":47,"dup":18,"events":6,"inherits":69,"process-nextick-args":129,"util-deprecate":144}],137:[function(require,module,exports){
 arguments[4][19][0].apply(exports,arguments)
-},{"buffer":4,"buffer-shims":38,"dup":19}],138:[function(require,module,exports){
+},{"buffer":4,"buffer-shims":37,"dup":19}],138:[function(require,module,exports){
 arguments[4][21][0].apply(exports,arguments)
 },{"./lib/_stream_duplex.js":132,"./lib/_stream_passthrough.js":133,"./lib/_stream_readable.js":134,"./lib/_stream_transform.js":135,"./lib/_stream_writable.js":136,"_process":12,"dup":21}],139:[function(require,module,exports){
 'use strict'

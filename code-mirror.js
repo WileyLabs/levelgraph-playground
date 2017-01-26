@@ -7,7 +7,7 @@ require('codemirror/addon/lint/lint');
 require('codemirror/addon/lint/json-lint');
 
 // custom json-ld hinter
-require('./jsonld-hint.js');
+require('codemirror-jsonld-hint');
 
 const default_options = {
   lineNumbers: true,
