@@ -24,6 +24,24 @@ Reload your browser.
 
 Rinse. Repeat.
 
+## HTTPS Testing
+
+Much more complex setup:
+
+1. make a certificate
+> openssl req -x509 -sha256 -nodes -newkey rsa:2048 -days 365 -keyout ~/.ssh/localhost.key -out ~/.ssh/localhost.crt
+2. install a dev server
+> npm i -g http-server
+3. run the dev server using the certificate
+> http-server --ssl --cert ~/.ssh/localhost.crt --key ~/.ssh/localhost.key
+4. visit the site in your browser
+> https://localhost:8080
+5. tell your browser that you trust yourself (or at least the certificate you
+just made)
+> ...involves clicking lots of buttons in different places depending on the
+> browser...sorry...
+6. hopefully it worked
+
 ## License
 
 Apache License 2.0
