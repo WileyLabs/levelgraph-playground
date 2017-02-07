@@ -6023,13 +6023,6 @@ window.app = new Vue({
   }
 });
 
-// Tell the curious developer where the awesomeness lives
-console.log("Hi there from LevelGraph Playground! "
-  + "If you've dug this deep, you deserve this information!\n"
-  + " - app - is the Vue.js-based Playground UI app\n"
-  + " - db - is a local LevelGraph database (see also db.jsonld & db.n3)\n"
-  + "Enjoy!");
-
 },{"./code-mirror":30,"es6-promise":61,"isomorphic-fetch":72,"level-js":88,"levelgraph":109,"levelgraph-jsonld":97,"levelgraph-n3":98,"levelup":119,"vue":152}],32:[function(require,module,exports){
 (function (process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
@@ -27330,12 +27323,12 @@ jsonld.compact = function(input, ctx, options, callback) {
   }
 
   var expand = function(input, options, callback) {
-    if(options.skipExpansion) {
-      return jsonld.nextTick(function() {
-        callback(null, input);
-      });
-    }
-    jsonld.expand(input, options, callback);
+    jsonld.nextTick(function() {
+      if(options.skipExpansion) {
+        return callback(null, input);
+      }
+      jsonld.expand(input, options, callback);
+    });
   };
 
   // expand input then do compaction
@@ -32648,18 +32641,13 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
   }
   relativeTo = relativeTo || {};
 
-  var inverseCtx = activeCtx.getInverse();
-
-  // if term is a keyword, it can only be compacted to a simple alias
+  // if term is a keyword, default vocab to true
   if(_isKeyword(iri)) {
-    if(iri in inverseCtx) {
-      return inverseCtx[iri]['@none']['@type']['@none'];
-    }
-    return iri;
+    relativeTo.vocab = true;
   }
 
   // use inverse context to pick a term if iri is relative to vocab
-  if(relativeTo.vocab && iri in inverseCtx) {
+  if(relativeTo.vocab && iri in activeCtx.getInverse()) {
     var defaultLanguage = activeCtx['@language'] || '@none';
 
     // prefer @index if available in value
@@ -32767,37 +32755,32 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
 
   // no term or @vocab match, check for possible CURIEs
   var choice = null;
-  var idx = 0;
-  var partialMatches = [];
-  var iriMap = activeCtx.fastCurieMap;
-  // check for partial matches of against `iri`, which means look until
-  // iri.length - 1, not full length
-  var maxPartialLength = iri.length - 1;
-  for(; idx < maxPartialLength && iri[idx] in iriMap; ++idx) {
-    iriMap = iriMap[iri[idx]];
-    if('' in iriMap) {
-      partialMatches.push(iriMap[''][0]);
+  for(var term in activeCtx.mappings) {
+    var definition = activeCtx.mappings[term];
+    // skip null definitions and terms with colons, they can't be prefixes
+    if(!definition || definition._termHasColon) {
+      continue;
     }
-  }
-  // check partial matches in reverse order to prefer longest ones first
-  for(var i = partialMatches.length - 1; i >= 0; --i) {
-    var entry = partialMatches[i];
-    var terms = entry.terms;
-    for(var ti = 0; ti < terms.length; ++ti) {
-      // a CURIE is usable if:
-      // 1. it has no mapping, OR
-      // 2. value is null, which means we're not compacting an @value, AND
-      //   the mapping matches the IRI
-      var curie = terms[ti] + ':' + iri.substr(entry.iri.length);
-      var isUsableCurie = (!(curie in activeCtx.mappings) ||
-        (value === null && activeCtx.mappings[curie]['@id'] === iri));
+    // skip entries with @ids that are not partial matches
+    if(!(iri.length > definition['@id'].length &&
+      iri.indexOf(definition['@id']) === 0)) {
+      continue;
+    }
 
-      // select curie if it is shorter or the same length but lexicographically
-      // less than the current choice
-      if(isUsableCurie && (choice === null ||
-        _compareShortestLeast(curie, choice) < 0)) {
-        choice = curie;
-      }
+    // a CURIE is usable if:
+    // 1. it has no mapping, OR
+    // 2. value is null, which means we're not compacting an @value, AND
+    //   the mapping matches the IRI)
+    var curie = term + ':' + iri.substr(definition['@id'].length);
+    var isUsableCurie = (!(curie in activeCtx.mappings) ||
+      (value === null && activeCtx.mappings[curie] &&
+      activeCtx.mappings[curie]['@id'] === iri));
+
+    // select curie if it is shorter or the same length but lexicographically
+    // less than the current choice
+    if(isUsableCurie && (choice === null ||
+      _compareShortestLeast(curie, choice) < 0)) {
+      choice = curie;
     }
   }
 
@@ -33420,10 +33403,6 @@ function _getInitialContext(options) {
     }
     var inverse = activeCtx.inverse = {};
 
-    // variables for building fast CURIE map
-    var fastCurieMap = activeCtx.fastCurieMap = {};
-    var irisToTerms = {};
-
     // handle default language
     var defaultLanguage = activeCtx['@language'] || '@none';
 
@@ -33448,25 +33427,10 @@ function _getInitialContext(options) {
       for(var ii = 0; ii < ids.length; ++ii) {
         var iri = ids[ii];
         var entry = inverse[iri];
-        var isKeyword = _isKeyword(iri);
 
+        // initialize entry
         if(!entry) {
-          // initialize entry
           inverse[iri] = entry = {};
-
-          if(!isKeyword && !mapping._termHasColon) {
-            // init IRI to term map and fast CURIE prefixes
-            irisToTerms[iri] = [term];
-            var fastCurieEntry = {iri: iri, terms: irisToTerms[iri]};
-            if(iri[0] in fastCurieMap) {
-              fastCurieMap[iri[0]].push(fastCurieEntry);
-            } else {
-              fastCurieMap[iri[0]] = [fastCurieEntry];
-            }
-          }
-        } else if(!isKeyword && !mapping._termHasColon) {
-          // add IRI to term match
-          irisToTerms[iri].push(term);
         }
 
         // add new entry
@@ -33501,48 +33465,7 @@ function _getInitialContext(options) {
       }
     }
 
-    // build fast CURIE map
-    for(var key in fastCurieMap) {
-      _buildIriMap(fastCurieMap, key, 1);
-    }
-
     return inverse;
-  }
-
-  /**
-   * Runs a recursive algorithm to build a lookup map for quickly finding
-   * potential CURIEs.
-   *
-   * @param iriMap the map to build.
-   * @param key the current key in the map to work on.
-   * @param idx the index into the IRI to compare.
-   */
-  function _buildIriMap(iriMap, key, idx) {
-    var entries = iriMap[key];
-    var next = iriMap[key] = {};
-
-    var iri;
-    var letter;
-    for(var i = 0; i < entries.length; ++i) {
-      iri = entries[i].iri;
-      if(idx >= iri.length) {
-        letter = '';
-      } else {
-        letter = iri[idx];
-      }
-      if(letter in next) {
-        next[letter].push(entries[i]);
-      } else {
-        next[letter] = [entries[i]];
-      }
-    }
-
-    for(var key in next) {
-      if(key === '') {
-        continue;
-      }
-      _buildIriMap(next, key, idx + 1);
-    }
   }
 
   /**
@@ -40495,42 +40418,47 @@ function levelgraphJSONLD(db, jsonldOpts) {
 
         stream.on('error', callback);
         stream.on('close', function() {
+          if (options.blank_ids) {
+            // return rdf store scoped blank nodes
 
-          var blank_keys = Object.keys(blanks);
-          var clone_obj = Object.assign({}, obj)
-          var frame;
-          frame = (function framify(o) {
-            Object.keys(o).map(function(key) {
-              if (Array.isArray(o[key]) && key != "@type") {
-                o[key] = o[key][0];
-              } else if (typeof o[key] === "object") {
-                o[key] = framify(o[key]);
-              }
-            })
-            return o;
-          })(clone_obj)
-
-          if (blank_keys.length != 0) {
-            jsonld.frame(obj, frame, function(err, framed) {
-              if (err) {
-                return callback(err, null);
-              }
-              var framed_string = JSON.stringify(framed);
-
-              blank_keys.forEach(function(blank) {
-                framed_string = framed_string.replace(blank,blanks[blank])
+            var blank_keys = Object.keys(blanks);
+            var clone_obj = Object.assign({}, obj)
+            var frame;
+            frame = (function framify(o) {
+              Object.keys(o).map(function(key) {
+                if (Array.isArray(o[key]) && key != "@type") {
+                  o[key] = o[key][0];
+                } else if (typeof o[key] === "object") {
+                  o[key] = framify(o[key]);
+                }
               })
-              var ided = JSON.parse(framed_string);
-              if (ided["@graph"].length == 1) {
-                var clean_reframe = Object.assign({}, { "@context": ided["@context"]}, ided["@graph"][0]);
-                return callback(null, clean_reframe);
-              } else if (ided["@graph"].length > 1) {
-                return callback(null, ided);
-              } else {
-                // Could not reframe the input, returning the original object
-                return callback(null, obj);
-              }
-            })
+              return o;
+            })(clone_obj)
+
+            if (blank_keys.length != 0) {
+              jsonld.frame(obj, frame, function(err, framed) {
+                if (err) {
+                  return callback(err, null);
+                }
+                var framed_string = JSON.stringify(framed);
+
+                blank_keys.forEach(function(blank) {
+                  framed_string = framed_string.replace(blank,blanks[blank])
+                })
+                var ided = JSON.parse(framed_string);
+                if (ided["@graph"].length == 1) {
+                  var clean_reframe = Object.assign({}, { "@context": ided["@context"]}, ided["@graph"][0]);
+                  return callback(null, clean_reframe);
+                } else if (ided["@graph"].length > 1) {
+                  return callback(null, ided);
+                } else {
+                  // Could not reframe the input, returning the original object
+                  return callback(null, obj);
+                }
+              })
+            } else {
+              return callback(null, obj);
+            }
           } else {
             return callback(null, obj);
           }
@@ -40794,8 +40722,10 @@ function levelgraphJSONLD(db, jsonldOpts) {
       async.reduce(triples, memo, function(acc, triple, cb) {
         var key;
 
-        if (!acc[triple.subject]) {
+        if (!acc[triple.subject] && !N3Util.isBlank(triple.subject)) {
           acc[triple.subject] = { '@id': triple.subject };
+        } else if (N3Util.isBlank(triple.subject) && !acc[triple.subject]) {
+          acc[triple.subject] = {};
         }
         if (triple.predicate === RDFTYPE) {
           if (acc[triple.subject]['@type']) {
@@ -40803,7 +40733,7 @@ function levelgraphJSONLD(db, jsonldOpts) {
           } else {
             acc[triple.subject]['@type'] = [triple.object];
           }
-          cb(null, acc);
+          return cb(null, acc);
         } else if (!N3Util.isBlank(triple.object)) {
           var object = {};
           if (N3Util.isIRI(triple.object)) {
@@ -40812,42 +40742,34 @@ function levelgraphJSONLD(db, jsonldOpts) {
             object = getCoercedObject(triple.object);
           }
           if(object['@id']) {
+            // expanding object iri
             fetchExpandedTriples(triple.object, function(err, expanded) {
-              if (expanded !== null && !acc[triple.subject][triple.predicate]) {
-                acc[triple.subject][triple.predicate] = expanded[triple.object];
-              } else if (expanded !== null) {
-                if (!acc[triple.subject][triple.predicate].push) {
-                  acc[triple.subject][triple.predicate] = [acc[triple.subject][triple.predicate]];
-                }
+              if (!acc[triple.subject][triple.predicate]) acc[triple.subject][triple.predicate] = [];
+              if (expanded !== null) {
                 acc[triple.subject][triple.predicate].push(expanded[triple.object]);
               } else {
-                if (Array.isArray(acc[triple.subject][triple.predicate])){
-                  acc[triple.subject][triple.predicate].push(object);
-                } else {
-                  acc[triple.subject][triple.predicate] = [object];
-                }
+                acc[triple.subject][triple.predicate].push(object);
               }
-              cb(err, acc);
+              return cb(err, acc);
             });
           }
           else if (Array.isArray(acc[triple.subject][triple.predicate])){
             acc[triple.subject][triple.predicate].push(object);
-            cb(err, acc);
+            return cb(err, acc);
           } else {
             acc[triple.subject][triple.predicate] = [object];
-            cb(err, acc);
+            return cb(err, acc);
           }
         } else {
+          // deal with blanks
           fetchExpandedTriples(triple.object, function(err, expanded) {
-            if (expanded !== null && !acc[triple.subject][triple.predicate]) {
-              acc[triple.subject][triple.predicate] = expanded[triple.object];
-            } else if (expanded !== null) {
-              if (!Array.isArray(acc[triple.subject][triple.predicate])) {
-                acc[triple.subject][triple.predicate] = [acc[triple.subject][triple.predicate]];
-              }
+            if (!acc[triple.subject][triple.predicate]) acc[triple.subject][triple.predicate] = [];
+            if (expanded !== null) {
               acc[triple.subject][triple.predicate].push(expanded[triple.object]);
+            } else {
+              acc[triple.subject][triple.predicate].push(object);
             }
-            cb(err, acc);
+            return cb(err, acc);
           });
         }
       }, callback);
