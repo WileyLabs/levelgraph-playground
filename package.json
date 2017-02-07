@@ -19,9 +19,13 @@
   "browser": {
     "vue": "vue/dist/vue.common"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "babel-core": "^6.22.1",
+    "babel-preset-es2015": "^6.22.0",
+    "vueify": "^9.4.0"
+  },
   "scripts": {
-    "build": "browserify index.js -o dist/index.js",
+    "build": "browserify -t vueify index.js -o dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [

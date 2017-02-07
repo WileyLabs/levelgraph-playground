@@ -30,20 +30,7 @@
       Fork / Contribute
     </a>
 
-    <package-json inline-template>
-      <div class="ui simple right floated basic dropdown button">
-        depenencies
-        <i class="dropdown icon"></i>
-        <div class="menu" style="left: auto; right: 0; width: 20em">
-          <a class="link item" target="_blank"
-            v-for="(value, key) in doc.dependencies"
-            :href="'https://www.npmjs.com/package/' + key">
-            <span class="description" v-if="value.length < 10">{{value}}</span>
-            <span class="text">{{key}}</span>
-          </a>
-        </div>
-      </div>
-    </package-json>
+    <package-json></package-json>
 
     <h1 class="ui dividing page header">
       <a href="http://levelgraph.io/" target="_blank">LevelGraph</a> Playground

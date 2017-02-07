@@ -5825,39 +5825,7 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 
 Vue.component('code-mirror', require('./code-mirror'));
 
-Vue.component('package-json', {
-  data: function() {
-    return {
-      doc: {
-        name: "",
-        version: "",
-        description: "",
-        repository: "",
-        dependencies: {},
-        devDependencies: {},
-        keywords: [],
-        author: "",
-        license: ""
-        // TODO: add all the things...i guess...
-      }
-    }
-  },
-  created: function() {
-    var self = this;
-    // Fetch() package.json for displaying dependencies
-    // returns a Promise
-    fetch('package.json')
-      .then(function(response) {
-        if (response.status >= 400) {
-            throw new Error("Bad response from server");
-        }
-        return response.json();
-      })
-      .then(function(pkg) {
-        self.doc = pkg;
-      });
-  }
-});
+Vue.component('package-json', require('./package-json.vue'));
 
 window.app = new Vue({
   el: '#app',
@@ -6023,7 +5991,7 @@ window.app = new Vue({
   }
 });
 
-},{"./code-mirror":30,"es6-promise":61,"isomorphic-fetch":72,"level-js":88,"levelgraph":109,"levelgraph-jsonld":97,"levelgraph-n3":98,"levelup":119,"vue":152}],32:[function(require,module,exports){
+},{"./code-mirror":30,"./package-json.vue":158,"es6-promise":61,"isomorphic-fetch":72,"level-js":88,"levelgraph":109,"levelgraph-jsonld":97,"levelgraph-n3":98,"levelup":119,"vue":153}],32:[function(require,module,exports){
 (function (process){
 /* Copyright (c) 2013 Rod Vagg, MIT License */
 
@@ -23504,7 +23472,7 @@ function once (fn) {
   return f
 }
 
-},{"wrappy":154}],58:[function(require,module,exports){
+},{"wrappy":155}],58:[function(require,module,exports){
 var prr = require('prr')
 
 function init (type, message, cause) {
@@ -27189,7 +27157,7 @@ function isBuffer (o) {
 require('whatwg-fetch');
 module.exports = self.fetch.bind(self);
 
-},{"whatwg-fetch":153}],73:[function(require,module,exports){
+},{"whatwg-fetch":154}],73:[function(require,module,exports){
 // Ignore module for browserify (see package.json)
 },{}],74:[function(require,module,exports){
 (function (process,global,__dirname){
@@ -38538,7 +38506,7 @@ var checkKeyValue = Level.prototype._checkKeyValue = function (obj, type) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./iterator":89,"abstract-leveldown":34,"buffer":4,"idb-wrapper":68,"isbuffer":71,"typedarray-to-buffer":144,"util":29,"xtend":156}],89:[function(require,module,exports){
+},{"./iterator":89,"abstract-leveldown":34,"buffer":4,"idb-wrapper":68,"isbuffer":71,"typedarray-to-buffer":144,"util":29,"xtend":157}],89:[function(require,module,exports){
 var util = require('util')
 var AbstractIterator  = require('abstract-leveldown').AbstractIterator
 var ltgt = require('ltgt')
@@ -38769,7 +38737,7 @@ module.exports = function (db) {
 
 module.exports.WriteStream = WriteStream
 }).call(this,require('_process'))
-},{"_process":12,"readable-stream":96,"stream":24,"util":29,"xtend":156}],91:[function(require,module,exports){
+},{"_process":12,"readable-stream":96,"stream":24,"util":29,"xtend":157}],91:[function(require,module,exports){
 arguments[4][14][0].apply(exports,arguments)
 },{"./_stream_readable":93,"./_stream_writable":95,"core-util-is":47,"dup":14,"inherits":69,"process-nextick-args":131}],92:[function(require,module,exports){
 arguments[4][15][0].apply(exports,arguments)
@@ -45994,7 +45962,7 @@ function onceStrict (fn) {
   return f
 }
 
-},{"wrappy":154}],131:[function(require,module,exports){
+},{"wrappy":155}],131:[function(require,module,exports){
 arguments[4][11][0].apply(exports,arguments)
 },{"_process":12,"dup":11}],132:[function(require,module,exports){
 arguments[4][60][0].apply(exports,arguments)
@@ -47125,6 +47093,138 @@ function v4(options, buf, offset) {
 module.exports = v4;
 
 },{"./lib/bytesToUuid":148,"./lib/rng":149}],152:[function(require,module,exports){
+var Vue // late bind
+var map = window.__VUE_HOT_MAP__ = Object.create(null)
+var installed = false
+var isBrowserify = false
+var initHookName = 'beforeCreate'
+
+exports.install = function (vue, browserify) {
+  if (installed) return
+  installed = true
+
+  Vue = vue
+  isBrowserify = browserify
+
+  // compat with < 2.0.0-alpha.7
+  if (Vue.config._lifecycleHooks.indexOf('init') > -1) {
+    initHookName = 'init'
+  }
+
+  exports.compatible = Number(Vue.version.split('.')[0]) >= 2
+  if (!exports.compatible) {
+    console.warn(
+      '[HMR] You are using a version of vue-hot-reload-api that is ' +
+      'only compatible with Vue.js core ^2.0.0.'
+    )
+    return
+  }
+}
+
+/**
+ * Create a record for a hot module, which keeps track of its constructor
+ * and instances
+ *
+ * @param {String} id
+ * @param {Object} options
+ */
+
+exports.createRecord = function (id, options) {
+  var Ctor = null
+  if (typeof options === 'function') {
+    Ctor = options
+    options = Ctor.options
+  }
+  makeOptionsHot(id, options)
+  map[id] = {
+    Ctor: Vue.extend(options),
+    instances: []
+  }
+}
+
+/**
+ * Make a Component options object hot.
+ *
+ * @param {String} id
+ * @param {Object} options
+ */
+
+function makeOptionsHot (id, options) {
+  injectHook(options, initHookName, function () {
+    map[id].instances.push(this)
+  })
+  injectHook(options, 'beforeDestroy', function () {
+    var instances = map[id].instances
+    instances.splice(instances.indexOf(this), 1)
+  })
+}
+
+/**
+ * Inject a hook to a hot reloadable component so that
+ * we can keep track of it.
+ *
+ * @param {Object} options
+ * @param {String} name
+ * @param {Function} hook
+ */
+
+function injectHook (options, name, hook) {
+  var existing = options[name]
+  options[name] = existing
+    ? Array.isArray(existing)
+      ? existing.concat(hook)
+      : [existing, hook]
+    : [hook]
+}
+
+function tryWrap (fn) {
+  return function (id, arg) {
+    try { fn(id, arg) } catch (e) {
+      console.error(e)
+      console.warn('Something went wrong during Vue component hot-reload. Full reload required.')
+    }
+  }
+}
+
+exports.rerender = tryWrap(function (id, options) {
+  var record = map[id]
+  if (typeof options === 'function') {
+    options = options.options
+  }
+  record.Ctor.options.render = options.render
+  record.Ctor.options.staticRenderFns = options.staticRenderFns
+  record.instances.slice().forEach(function (instance) {
+    instance.$options.render = options.render
+    instance.$options.staticRenderFns = options.staticRenderFns
+    instance._staticTrees = [] // reset static trees
+    instance.$forceUpdate()
+  })
+})
+
+exports.reload = tryWrap(function (id, options) {
+  if (typeof options === 'function') {
+    options = options.options
+  }
+  makeOptionsHot(id, options)
+  var record = map[id]
+  record.Ctor.extendOptions = options
+  var newCtor = Vue.extend(options)
+  record.Ctor.options = newCtor.options
+  record.Ctor.cid = newCtor.cid
+  if (newCtor.release) {
+    // temporary global mixin strategy used in < 2.0.0-alpha.6
+    newCtor.release()
+  }
+  record.instances.slice().forEach(function (instance) {
+    if (instance.$vnode && instance.$vnode.context) {
+      instance.$vnode.context.$forceUpdate()
+    } else {
+      console.warn('Root or manually mounted instance modified. Full reload required.')
+    }
+  })
+})
+
+},{}],153:[function(require,module,exports){
 (function (process,global){
 /*!
  * Vue.js v2.1.10
@@ -55696,7 +55796,7 @@ Vue$3.compile = compileToFunctions;
 module.exports = Vue$3;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":12}],153:[function(require,module,exports){
+},{"_process":12}],154:[function(require,module,exports){
 (function(self) {
   'use strict';
 
@@ -56156,7 +56256,7 @@ module.exports = Vue$3;
   self.fetch.polyfill = true
 })(typeof self !== 'undefined' ? self : this);
 
-},{}],154:[function(require,module,exports){
+},{}],155:[function(require,module,exports){
 // Returns a wrapper function that returns a wrapped callback
 // The wrapper function should do some stuff, and return a
 // presumably different callback function.
@@ -56191,7 +56291,7 @@ function wrappy (fn, cb) {
   }
 }
 
-},{}],155:[function(require,module,exports){
+},{}],156:[function(require,module,exports){
 module.exports = hasKeys
 
 function hasKeys(source) {
@@ -56200,7 +56300,7 @@ function hasKeys(source) {
         typeof source === "function")
 }
 
-},{}],156:[function(require,module,exports){
+},{}],157:[function(require,module,exports){
 var Keys = require("object-keys")
 var hasKeys = require("./has-keys")
 
@@ -56227,4 +56327,56 @@ function extend() {
     return target
 }
 
-},{"./has-keys":155,"object-keys":127}]},{},[31]);
+},{"./has-keys":156,"object-keys":127}],158:[function(require,module,exports){
+;(function(){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.default = {
+  data: function data() {
+    return {
+      doc: {
+        name: "",
+        version: "",
+        description: "",
+        repository: "",
+        dependencies: {},
+        devDependencies: {},
+        keywords: [],
+        author: "",
+        license: ""
+      }
+    };
+  },
+  created: function created() {
+    var self = this;
+
+    fetch('package.json').then(function (response) {
+      if (response.status >= 400) {
+        throw new Error("Bad response from server");
+      }
+      return response.json();
+    }).then(function (pkg) {
+      self.doc = pkg;
+    });
+  }
+};
+})()
+if (module.exports.__esModule) module.exports = module.exports.default
+var __vue__options__ = (typeof module.exports === "function"? module.exports.options: module.exports)
+if (__vue__options__.functional) {console.error("[vueify] functional components are not supported and should be defined in plain js files using render functions.")}
+__vue__options__.render = function render () {var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;return _c('div',{staticClass:"ui simple right floated basic dropdown button"},[_vm._v("\n  depenencies\n  "),_c('i',{staticClass:"dropdown icon"}),_vm._v(" "),_c('div',{staticClass:"menu",staticStyle:{"left":"auto","right":"0","width":"20em"}},_vm._l((_vm.doc.dependencies),function(value,key){return _c('a',{staticClass:"link item",attrs:{"target":"_blank","href":'https://www.npmjs.com/package/' + key}},[(value.length < 10)?_c('span',{staticClass:"description"},[_vm._v(_vm._s(value))]):_vm._e(),_vm._v(" "),_c('span',{staticClass:"text"},[_vm._v(_vm._s(key))])])}))])}
+__vue__options__.staticRenderFns = []
+if (module.hot) {(function () {  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), true)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-5644344f", __vue__options__)
+  } else {
+    hotAPI.reload("data-v-5644344f", __vue__options__)
+  }
+})()}
+},{"vue":153,"vue-hot-reload-api":152}]},{},[31]);

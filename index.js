@@ -44,39 +44,7 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 
 Vue.component('code-mirror', require('./code-mirror'));
 
-Vue.component('package-json', {
-  data: function() {
-    return {
-      doc: {
-        name: "",
-        version: "",
-        description: "",
-        repository: "",
-        dependencies: {},
-        devDependencies: {},
-        keywords: [],
-        author: "",
-        license: ""
-        // TODO: add all the things...i guess...
-      }
-    }
-  },
-  created: function() {
-    var self = this;
-    // Fetch() package.json for displaying dependencies
-    // returns a Promise
-    fetch('package.json')
-      .then(function(response) {
-        if (response.status >= 400) {
-            throw new Error("Bad response from server");
-        }
-        return response.json();
-      })
-      .then(function(pkg) {
-        self.doc = pkg;
-      });
-  }
-});
+Vue.component('package-json', require('./package-json.vue'));
 
 window.app = new Vue({
   el: '#app',
