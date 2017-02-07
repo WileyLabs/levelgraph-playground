@@ -6,6 +6,10 @@ var levelup = require('levelup');
 var levelgraphJSONLD = require('levelgraph-jsonld');
 var levelgraphN3 = require('levelgraph-n3');
 
+// Use futuristic Fetch() API
+require('es6-promise').polyfill();
+require('isomorphic-fetch');
+
 var factory = function (location) { return new leveljs(location) };
 
 var db = levelgraphN3(
@@ -39,6 +43,40 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
 
 Vue.component('code-mirror', require('./code-mirror'));
+
+Vue.component('package-json', {
+  data: function() {
+    return {
+      doc: {
+        name: "",
+        version: "",
+        description: "",
+        repository: "",
+        dependencies: {},
+        devDependencies: {},
+        keywords: [],
+        author: "",
+        license: ""
+        // TODO: add all the things...i guess...
+      }
+    }
+  },
+  created: function() {
+    var self = this;
+    // Fetch() package.json for displaying dependencies
+    // returns a Promise
+    fetch('package.json')
+      .then(function(response) {
+        if (response.status >= 400) {
+            throw new Error("Bad response from server");
+        }
+        return response.json();
+      })
+      .then(function(pkg) {
+        self.doc = pkg;
+      });
+  }
+});
 
 window.app = new Vue({
   el: '#app',
