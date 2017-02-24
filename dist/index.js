@@ -5804,15 +5804,29 @@ window.db = db;
 
 var default_jsonld = JSON.stringify({
   "@context": {
-    "@vocab": "http://xmlns.com/foaf/0.1/",
+    "generatedAt": {
+      "@id": "http://www.w3.org/ns/prov#generatedAtTime",
+      "@type": "http://www.w3.org/2001/XMLSchema#date"
+    },
+    "Person": "http://xmlns.com/foaf/0.1/Person",
+    "name": "http://xmlns.com/foaf/0.1/name",
+    "knows": "http://xmlns.com/foaf/0.1/knows"
   },
-  "@id": "http://bigbluehat.com/#",
-  "name": "BigBlueHat",
-  "knows": [
+  "@id": "http://example.org/graphs/73",
+  "generatedAt": "2012-04-09",
+  "@graph":
+  [
     {
-      "@id": "http://manu.sporny.org#person",
+      "@id": "http://manu.sporny.org/about#manu",
+      "@type": "Person",
       "name": "Manu Sporny",
-      "homepage": "http://manu.sporny.org/"
+      "knows": "http://greggkellogg.net/foaf#me"
+    },
+    {
+      "@id": "http://greggkellogg.net/foaf#me",
+      "@type": "Person",
+      "name": "Gregg Kellogg",
+      "knows": "http://manu.sporny.org/about#manu"
     }
   ]
 }, null, 2);
@@ -8694,6 +8708,12 @@ function queue(worker, concurrency, payload) {
             _insert(data, true, callback);
         },
         process: function () {
+            // Avoid trying to start too many processing operations. This can occur
+            // when callbacks resolve synchronously (#1267).
+            if (isProcessing) {
+                return;
+            }
+            isProcessing = true;
             while (!q.paused && workers < q.concurrency && q._tasks.length) {
                 var tasks = [],
                     data = [];
@@ -8718,6 +8738,7 @@ function queue(worker, concurrency, payload) {
                 var cb = onlyOnce(_next(tasks));
                 worker(data, cb);
             }
+            isProcessing = false;
         },
         length: function () {
             return q._tasks.length;
@@ -8739,12 +8760,7 @@ function queue(worker, concurrency, payload) {
                 return;
             }
             q.paused = false;
-            var resumeCount = Math.min(q.concurrency, q._tasks.length);
-            // Need to call q.process once per concurrent
-            // worker to preserve full concurrency after pause
-            for (var w = 1; w <= resumeCount; w++) {
-                setImmediate$1(q.process);
-            }
+            setImmediate$1(q.process);
         }
     };
     return q;
@@ -8955,9 +8971,9 @@ var seq$1 = rest(function seq(functions) {
         }
 
         reduce(functions, args, function (newargs, fn, cb) {
-            fn.apply(that, newargs.concat([rest(function (err, nextargs) {
+            fn.apply(that, newargs.concat(rest(function (err, nextargs) {
                 cb(err, nextargs);
-            })]));
+            })));
         }, function (err, results) {
             cb.apply(that, [err].concat(results));
         });
@@ -9120,36 +9136,30 @@ var constant = rest(function (values) {
     });
 });
 
-function _createTester(eachfn, check, getResult) {
-    return function (arr, limit, iteratee, cb) {
-        function done() {
-            if (cb) {
-                cb(null, getResult(false));
-            }
-        }
-        function wrappedIteratee(x, _, callback) {
-            if (!cb) return callback();
-            iteratee(x, function (err, v) {
-                // Check cb as another iteratee may have resolved with a
-                // value or error since we started this iteratee
-                if (cb && (err || check(v))) {
-                    if (err) cb(err);else cb(err, getResult(true, x));
-                    cb = iteratee = false;
-                    callback(err, breakLoop);
+function _createTester(check, getResult) {
+    return function (eachfn, arr, iteratee, cb) {
+        cb = cb || noop;
+        var testPassed = false;
+        var testResult;
+        eachfn(arr, function (value, _, callback) {
+            iteratee(value, function (err, result) {
+                if (err) {
+                    callback(err);
+                } else if (check(result) && !testResult) {
+                    testPassed = true;
+                    testResult = getResult(true, value);
+                    callback(null, breakLoop);
                 } else {
                     callback();
                 }
             });
-        }
-        if (arguments.length > 3) {
-            cb = cb || noop;
-            eachfn(arr, limit, wrappedIteratee, done);
-        } else {
-            cb = iteratee;
-            cb = cb || noop;
-            iteratee = limit;
-            eachfn(arr, wrappedIteratee, done);
-        }
+        }, function (err) {
+            if (err) {
+                cb(err);
+            } else {
+                cb(null, testPassed ? testResult : getResult(false));
+            }
+        });
     };
 }
 
@@ -9192,7 +9202,7 @@ function _findGetResult(v, x) {
  *     // result now equals the first file in the list that exists
  * });
  */
-var detect = _createTester(eachOf, identity, _findGetResult);
+var detect = doParallel(_createTester(identity, _findGetResult));
 
 /**
  * The same as [`detect`]{@link module:Collections.detect} but runs a maximum of `limit` async operations at a
@@ -9216,7 +9226,7 @@ var detect = _createTester(eachOf, identity, _findGetResult);
  * (iteratee) or the value `undefined` if none passed. Invoked with
  * (err, result).
  */
-var detectLimit = _createTester(eachOfLimit, identity, _findGetResult);
+var detectLimit = doParallelLimit(_createTester(identity, _findGetResult));
 
 /**
  * The same as [`detect`]{@link module:Collections.detect} but runs only a single async operation at a time.
@@ -9238,11 +9248,11 @@ var detectLimit = _createTester(eachOfLimit, identity, _findGetResult);
  * (iteratee) or the value `undefined` if none passed. Invoked with
  * (err, result).
  */
-var detectSeries = _createTester(eachOfSeries, identity, _findGetResult);
+var detectSeries = doLimit(detectLimit, 1);
 
 function consoleFunc(name) {
     return rest(function (fn, args) {
-        fn.apply(null, args.concat([rest(function (err, args) {
+        fn.apply(null, args.concat(rest(function (err, args) {
             if (typeof console === 'object') {
                 if (err) {
                     if (console.error) {
@@ -9254,7 +9264,7 @@ function consoleFunc(name) {
                     });
                 }
             }
-        })]));
+        })));
     });
 }
 
@@ -9640,7 +9650,7 @@ function notId(v) {
  *     // if result is true then every file exists
  * });
  */
-var every = _createTester(eachOf, notId, notId);
+var every = doParallel(_createTester(notId, notId));
 
 /**
  * The same as [`every`]{@link module:Collections.every} but runs a maximum of `limit` async operations at a time.
@@ -9662,7 +9672,7 @@ var every = _createTester(eachOf, notId, notId);
  * `iteratee` functions have finished. Result will be either `true` or `false`
  * depending on the values of the async tests. Invoked with (err, result).
  */
-var everyLimit = _createTester(eachOfLimit, notId, notId);
+var everyLimit = doParallelLimit(_createTester(notId, notId));
 
 /**
  * The same as [`every`]{@link module:Collections.every} but runs only a single async operation at a time.
@@ -10040,14 +10050,14 @@ function memoize(fn, hasher) {
             queues[key].push(callback);
         } else {
             queues[key] = [callback];
-            fn.apply(null, args.concat([rest(function (args) {
+            fn.apply(null, args.concat(rest(function (args) {
                 memo[key] = args;
                 var q = queues[key];
                 delete queues[key];
                 for (var i = 0, l = q.length; i < l; i++) {
                     q[i].apply(null, args);
                 }
-            })]));
+            })));
         }
     });
     memoized.memo = memo;
@@ -10870,7 +10880,7 @@ var retryable = function (opts, task) {
     }
     return initialParams(function (args, callback) {
         function taskFn(cb) {
-            task.apply(null, args.concat([cb]));
+            task.apply(null, args.concat(cb));
         }
 
         if (opts) retry(opts, taskFn, callback);else retry(taskFn, callback);
@@ -10975,7 +10985,7 @@ function series(tasks, callback) {
  *     // if result is true then at least one of the files exists
  * });
  */
-var some = _createTester(eachOf, Boolean, identity);
+var some = doParallel(_createTester(Boolean, identity));
 
 /**
  * The same as [`some`]{@link module:Collections.some} but runs a maximum of `limit` async operations at a time.
@@ -10998,7 +11008,7 @@ var some = _createTester(eachOf, Boolean, identity);
  * Result will be either `true` or `false` depending on the values of the async
  * tests. Invoked with (err, result).
  */
-var someLimit = _createTester(eachOfLimit, Boolean, identity);
+var someLimit = doParallelLimit(_createTester(Boolean, identity));
 
 /**
  * The same as [`some`]{@link module:Collections.some} but runs only a single async operation at a time.
@@ -27300,12 +27310,12 @@ jsonld.compact = function(input, ctx, options, callback) {
   }
 
   var expand = function(input, options, callback) {
-    jsonld.nextTick(function() {
-      if(options.skipExpansion) {
-        return callback(null, input);
-      }
-      jsonld.expand(input, options, callback);
-    });
+    if(options.skipExpansion) {
+      return jsonld.nextTick(function() {
+        callback(null, input);
+      });
+    }
+    jsonld.expand(input, options, callback);
   };
 
   // expand input then do compaction
@@ -32618,13 +32628,18 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
   }
   relativeTo = relativeTo || {};
 
-  // if term is a keyword, default vocab to true
+  var inverseCtx = activeCtx.getInverse();
+
+  // if term is a keyword, it can only be compacted to a simple alias
   if(_isKeyword(iri)) {
-    relativeTo.vocab = true;
+    if(iri in inverseCtx) {
+      return inverseCtx[iri]['@none']['@type']['@none'];
+    }
+    return iri;
   }
 
   // use inverse context to pick a term if iri is relative to vocab
-  if(relativeTo.vocab && iri in activeCtx.getInverse()) {
+  if(relativeTo.vocab && iri in inverseCtx) {
     var defaultLanguage = activeCtx['@language'] || '@none';
 
     // prefer @index if available in value
@@ -32732,32 +32747,37 @@ function _compactIri(activeCtx, iri, value, relativeTo, reverse) {
 
   // no term or @vocab match, check for possible CURIEs
   var choice = null;
-  for(var term in activeCtx.mappings) {
-    var definition = activeCtx.mappings[term];
-    // skip null definitions and terms with colons, they can't be prefixes
-    if(!definition || definition._termHasColon) {
-      continue;
+  var idx = 0;
+  var partialMatches = [];
+  var iriMap = activeCtx.fastCurieMap;
+  // check for partial matches of against `iri`, which means look until
+  // iri.length - 1, not full length
+  var maxPartialLength = iri.length - 1;
+  for(; idx < maxPartialLength && iri[idx] in iriMap; ++idx) {
+    iriMap = iriMap[iri[idx]];
+    if('' in iriMap) {
+      partialMatches.push(iriMap[''][0]);
     }
-    // skip entries with @ids that are not partial matches
-    if(!(iri.length > definition['@id'].length &&
-      iri.indexOf(definition['@id']) === 0)) {
-      continue;
-    }
+  }
+  // check partial matches in reverse order to prefer longest ones first
+  for(var i = partialMatches.length - 1; i >= 0; --i) {
+    var entry = partialMatches[i];
+    var terms = entry.terms;
+    for(var ti = 0; ti < terms.length; ++ti) {
+      // a CURIE is usable if:
+      // 1. it has no mapping, OR
+      // 2. value is null, which means we're not compacting an @value, AND
+      //   the mapping matches the IRI
+      var curie = terms[ti] + ':' + iri.substr(entry.iri.length);
+      var isUsableCurie = (!(curie in activeCtx.mappings) ||
+        (value === null && activeCtx.mappings[curie]['@id'] === iri));
 
-    // a CURIE is usable if:
-    // 1. it has no mapping, OR
-    // 2. value is null, which means we're not compacting an @value, AND
-    //   the mapping matches the IRI)
-    var curie = term + ':' + iri.substr(definition['@id'].length);
-    var isUsableCurie = (!(curie in activeCtx.mappings) ||
-      (value === null && activeCtx.mappings[curie] &&
-      activeCtx.mappings[curie]['@id'] === iri));
-
-    // select curie if it is shorter or the same length but lexicographically
-    // less than the current choice
-    if(isUsableCurie && (choice === null ||
-      _compareShortestLeast(curie, choice) < 0)) {
-      choice = curie;
+      // select curie if it is shorter or the same length but lexicographically
+      // less than the current choice
+      if(isUsableCurie && (choice === null ||
+        _compareShortestLeast(curie, choice) < 0)) {
+        choice = curie;
+      }
     }
   }
 
@@ -33380,6 +33400,10 @@ function _getInitialContext(options) {
     }
     var inverse = activeCtx.inverse = {};
 
+    // variables for building fast CURIE map
+    var fastCurieMap = activeCtx.fastCurieMap = {};
+    var irisToTerms = {};
+
     // handle default language
     var defaultLanguage = activeCtx['@language'] || '@none';
 
@@ -33404,10 +33428,25 @@ function _getInitialContext(options) {
       for(var ii = 0; ii < ids.length; ++ii) {
         var iri = ids[ii];
         var entry = inverse[iri];
+        var isKeyword = _isKeyword(iri);
 
-        // initialize entry
         if(!entry) {
+          // initialize entry
           inverse[iri] = entry = {};
+
+          if(!isKeyword && !mapping._termHasColon) {
+            // init IRI to term map and fast CURIE prefixes
+            irisToTerms[iri] = [term];
+            var fastCurieEntry = {iri: iri, terms: irisToTerms[iri]};
+            if(iri[0] in fastCurieMap) {
+              fastCurieMap[iri[0]].push(fastCurieEntry);
+            } else {
+              fastCurieMap[iri[0]] = [fastCurieEntry];
+            }
+          }
+        } else if(!isKeyword && !mapping._termHasColon) {
+          // add IRI to term match
+          irisToTerms[iri].push(term);
         }
 
         // add new entry
@@ -33442,7 +33481,48 @@ function _getInitialContext(options) {
       }
     }
 
+    // build fast CURIE map
+    for(var key in fastCurieMap) {
+      _buildIriMap(fastCurieMap, key, 1);
+    }
+
     return inverse;
+  }
+
+  /**
+   * Runs a recursive algorithm to build a lookup map for quickly finding
+   * potential CURIEs.
+   *
+   * @param iriMap the map to build.
+   * @param key the current key in the map to work on.
+   * @param idx the index into the IRI to compare.
+   */
+  function _buildIriMap(iriMap, key, idx) {
+    var entries = iriMap[key];
+    var next = iriMap[key] = {};
+
+    var iri;
+    var letter;
+    for(var i = 0; i < entries.length; ++i) {
+      iri = entries[i].iri;
+      if(idx >= iri.length) {
+        letter = '';
+      } else {
+        letter = iri[idx];
+      }
+      if(letter in next) {
+        next[letter].push(entries[i]);
+      } else {
+        next[letter] = [entries[i]];
+      }
+    }
+
+    for(var key in next) {
+      if(key === '') {
+        continue;
+      }
+      _buildIriMap(next, key, idx + 1);
+    }
   }
 
   /**
@@ -40396,47 +40476,42 @@ function levelgraphJSONLD(db, jsonldOpts) {
 
         stream.on('error', callback);
         stream.on('close', function() {
-          if (options.blank_ids) {
-            // return rdf store scoped blank nodes
 
-            var blank_keys = Object.keys(blanks);
-            var clone_obj = Object.assign({}, obj)
-            var frame;
-            frame = (function framify(o) {
-              Object.keys(o).map(function(key) {
-                if (Array.isArray(o[key]) && key != "@type") {
-                  o[key] = o[key][0];
-                } else if (typeof o[key] === "object") {
-                  o[key] = framify(o[key]);
-                }
+          var blank_keys = Object.keys(blanks);
+          var clone_obj = Object.assign({}, obj)
+          var frame;
+          frame = (function framify(o) {
+            Object.keys(o).map(function(key) {
+              if (Array.isArray(o[key]) && key != "@type") {
+                o[key] = o[key][0];
+              } else if (typeof o[key] === "object") {
+                o[key] = framify(o[key]);
+              }
+            })
+            return o;
+          })(clone_obj)
+
+          if (blank_keys.length != 0) {
+            jsonld.frame(obj, frame, function(err, framed) {
+              if (err) {
+                return callback(err, null);
+              }
+              var framed_string = JSON.stringify(framed);
+
+              blank_keys.forEach(function(blank) {
+                framed_string = framed_string.replace(blank,blanks[blank])
               })
-              return o;
-            })(clone_obj)
-
-            if (blank_keys.length != 0) {
-              jsonld.frame(obj, frame, function(err, framed) {
-                if (err) {
-                  return callback(err, null);
-                }
-                var framed_string = JSON.stringify(framed);
-
-                blank_keys.forEach(function(blank) {
-                  framed_string = framed_string.replace(blank,blanks[blank])
-                })
-                var ided = JSON.parse(framed_string);
-                if (ided["@graph"].length == 1) {
-                  var clean_reframe = Object.assign({}, { "@context": ided["@context"]}, ided["@graph"][0]);
-                  return callback(null, clean_reframe);
-                } else if (ided["@graph"].length > 1) {
-                  return callback(null, ided);
-                } else {
-                  // Could not reframe the input, returning the original object
-                  return callback(null, obj);
-                }
-              })
-            } else {
-              return callback(null, obj);
-            }
+              var ided = JSON.parse(framed_string);
+              if (ided["@graph"].length == 1) {
+                var clean_reframe = Object.assign({}, { "@context": ided["@context"]}, ided["@graph"][0]);
+                return callback(null, clean_reframe);
+              } else if (ided["@graph"].length > 1) {
+                return callback(null, ided);
+              } else {
+                // Could not reframe the input, returning the original object
+                return callback(null, obj);
+              }
+            })
           } else {
             return callback(null, obj);
           }
@@ -40715,10 +40790,8 @@ function levelgraphJSONLD(db, jsonldOpts) {
       async.reduce(triples, memo, function(acc, triple, cb) {
         var key;
 
-        if (!acc[triple.subject] && !N3Util.isBlank(triple.subject)) {
+        if (!acc[triple.subject]) {
           acc[triple.subject] = { '@id': triple.subject };
-        } else if (N3Util.isBlank(triple.subject) && !acc[triple.subject]) {
-          acc[triple.subject] = {};
         }
         if (triple.predicate === RDFTYPE) {
           if (acc[triple.subject]['@type']) {
@@ -40726,7 +40799,7 @@ function levelgraphJSONLD(db, jsonldOpts) {
           } else {
             acc[triple.subject]['@type'] = [triple.object];
           }
-          return cb(null, acc);
+          cb(null, acc);
         } else if (!N3Util.isBlank(triple.object)) {
           var object = {};
           if (N3Util.isIRI(triple.object)) {
@@ -40735,34 +40808,42 @@ function levelgraphJSONLD(db, jsonldOpts) {
             object = getCoercedObject(triple.object);
           }
           if(object['@id']) {
-            // expanding object iri
             fetchExpandedTriples(triple.object, function(err, expanded) {
-              if (!acc[triple.subject][triple.predicate]) acc[triple.subject][triple.predicate] = [];
-              if (expanded !== null) {
+              if (expanded !== null && !acc[triple.subject][triple.predicate]) {
+                acc[triple.subject][triple.predicate] = expanded[triple.object];
+              } else if (expanded !== null) {
+                if (!acc[triple.subject][triple.predicate].push) {
+                  acc[triple.subject][triple.predicate] = [acc[triple.subject][triple.predicate]];
+                }
                 acc[triple.subject][triple.predicate].push(expanded[triple.object]);
               } else {
-                acc[triple.subject][triple.predicate].push(object);
+                if (Array.isArray(acc[triple.subject][triple.predicate])){
+                  acc[triple.subject][triple.predicate].push(object);
+                } else {
+                  acc[triple.subject][triple.predicate] = [object];
+                }
               }
-              return cb(err, acc);
+              cb(err, acc);
             });
           }
           else if (Array.isArray(acc[triple.subject][triple.predicate])){
             acc[triple.subject][triple.predicate].push(object);
-            return cb(err, acc);
+            cb(err, acc);
           } else {
             acc[triple.subject][triple.predicate] = [object];
-            return cb(err, acc);
+            cb(err, acc);
           }
         } else {
-          // deal with blanks
           fetchExpandedTriples(triple.object, function(err, expanded) {
-            if (!acc[triple.subject][triple.predicate]) acc[triple.subject][triple.predicate] = [];
-            if (expanded !== null) {
+            if (expanded !== null && !acc[triple.subject][triple.predicate]) {
+              acc[triple.subject][triple.predicate] = expanded[triple.object];
+            } else if (expanded !== null) {
+              if (!Array.isArray(acc[triple.subject][triple.predicate])) {
+                acc[triple.subject][triple.predicate] = [acc[triple.subject][triple.predicate]];
+              }
               acc[triple.subject][triple.predicate].push(expanded[triple.object]);
-            } else {
-              acc[triple.subject][triple.predicate].push(object);
             }
-            return cb(err, acc);
+            cb(err, acc);
           });
         }
       }, callback);
