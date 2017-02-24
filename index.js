@@ -66,7 +66,9 @@ window.app = new Vue({
       predicate: '',
       object: ''
     },
-    current_tab: 'json-ld'
+    current_tab: 'json-ld',
+    limit: 100,
+    offset: 0
   },
   watch: {
     current_tab: function(v) {
@@ -106,6 +108,9 @@ window.app = new Vue({
       } else {
         throw Error('Hrm...current_tab got messed up somehow...');
       }
+    },
+    actual_table: function() {
+      return this.table.slice(this.offset, this.limit+this.offset);
     }
   },
   created: function() {
