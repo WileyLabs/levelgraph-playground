@@ -15,9 +15,9 @@
   #app {margin: 1%}
   .ui.buttons.hover-hidden {display: none}
   tr:hover .ui.buttons.hover-hidden {display: inherit}
-  .compact.table td.tight {padding: 0}
   tr td .ui.input {display: none}
-  .ui.bottom.attached.segment {padding:0}
+  .compact.table tbody td:last-child {padding: 0}
+  .ui.bottom.attached.segment {padding:0 auto}
   /* codemirror */
   .CodeMirror.cm-s-default {border-top: 1px solid #ccc;}
   </style>
@@ -84,46 +84,69 @@
       </div>
     </div>
 
-    <table class="ui compact table">
+    <table class="ui compact fixed table">
       <thead>
         <tr>
-          <th>subject</th>
-          <th>predicate</th>
-          <th colspan="2">object
-            <button @click="empty()" class="ui right floated negative button">empty</button>
+          <th class="four wide">
+            <div class="ui ribbon label">
+              Triples
+              <div class="detail">{{table.length}}</div>
+            </div>
+            subject
+          </th>
+          <th class="four wide">predicate</th>
+          <th class="four wide">object</th>
+          <th class="three wide">
+            graph
+          </th>
+          <th class="one wide">
+            <button @click="empty()" class="ui right floated tiny negative button">empty</button>
           </th>
         </tr>
         <tr>
-          <th class="four wide">
+          <th>
             <div class="ui fluid input">
               <input v-model="filter.subject" @keyup.enter="applyFilter()">
             </div>
           </th>
-          <th class="five wide">
+          <th>
             <div class="ui fluid input">
               <input v-model="filter.predicate" @keyup.enter="applyFilter()">
             </div>
           </th>
-          <th class="five wide">
+          <th>
             <div class="ui fluid input">
               <input v-model="filter.object" @keyup.enter="applyFilter()">
             </div>
           </th>
-          <th class="two wide">
+          <th>
             <div class="ui tiny buttons">
               <button @click="applyFilter()" class="ui button">Filter</button>
               <div class="or">
               <button @click="addSPO()" class="ui positive button">Add</button>
             </div>
           </th>
+          <th>
+            <div class="ui right floated mini pagination menu"
+                 v-if="table.length > limit">
+              <a class="icon item" @click="offset -= limit"
+                :class="{disabled: offset <= 0}">
+                <i class="left chevron icon"></i>
+              </a>
+              <a class="icon item" @click="offset += limit">
+                <i class="right chevron icon"></i>
+              </a>
+            </div>
+          </th>
         </tr>
       </thead>
       <tbody v-cloak>
-        <tr v-for="(spo, idx) in table">
-          <td>{{spo.subject}}</td>
-          <td>{{spo.predicate}}</td>
-          <td>{{spo.object}}</td>
-          <td class="tight">
+        <tr v-for="(spo, idx) in actual_table">
+          <td :title="spo.subject">{{spo.subject}}</td>
+          <td :title="spo.predicate">{{spo.predicate}}</td>
+          <td :title="spo.object">{{spo.object}}</td>
+          <td :title="spo.graph">{{spo.graph}}</td>
+          <td>
             <div class="ui mini hover-hidden right floated buttons">
               <div class="ui icon button" @click="setFilter(spo)">
                 <i class="pencil icon"></i>
