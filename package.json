@@ -40,6 +40,12 @@
     "demo",
     "playground"
   ],
-  "author": "BigBlueHat <byoung@bigbluehat.com>",
+  "author": "John Wiley & Sons, Inc.",
+  "contributors": [
+    {
+      "name": "BigBlueHat",
+      "email": "byoung@bigbluehat.com"
+    }
+  ],
   "license": "Apache-2.0"
 }
