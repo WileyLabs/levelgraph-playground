@@ -104,18 +104,30 @@
         </tr>
         <tr>
           <th>
-            <div class="ui fluid input">
+            <div class="ui fluid input" :class="{action: filtered}">
               <input v-model="filter.subject" @keyup.enter="applyFilter()">
+              <button class="ui basic icon button"
+                v-if="filtered && filter.subject" @click="removeFilter('subject')">
+                <i class="remove icon"></i>
+              </button>
             </div>
           </th>
           <th>
-            <div class="ui fluid input">
+            <div class="ui fluid input" :class="{action: filtered}">
               <input v-model="filter.predicate" @keyup.enter="applyFilter()">
+              <button class="ui basic icon button"
+                v-if="filtered && filter.predicate" @click="removeFilter('predicate')">
+                <i class="remove icon"></i>
+              </button>
             </div>
           </th>
           <th>
-            <div class="ui fluid input">
+            <div class="ui fluid input" :class="{action: filtered}">
               <input v-model="filter.object" @keyup.enter="applyFilter()">
+              <button class="ui basic icon button"
+                v-if="filtered && filter.object" @click="removeFilter('object')">
+                <i class="remove icon"></i>
+              </button>
             </div>
           </th>
           <th>

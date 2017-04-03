@@ -82,7 +82,8 @@ window.app = new Vue({
     },
     current_tab: 'json-ld',
     limit: 100,
-    offset: 0
+    offset: 0,
+    filtered: false
   },
   watch: {
     current_tab: function(v) {
@@ -184,7 +185,27 @@ window.app = new Vue({
       }
     },
     applyFilter: function() {
+      this.filtered = true;
       this.displayTriples(this.actual_filter);
+    },
+    removeFilter: function(filter) {
+      console.log('filter', filter, this.filter);
+      if (undefined === filter) {
+        this.filter = {
+          subject: '',
+          predicate: '',
+          object: ''
+        };
+        this.filtered = false;
+      } else {
+        this.filter[filter] = '';
+        if (this.filter.subject === ''
+          && this.filter.predicate === ''
+          && this.filter.object === '') {
+          this.filtered = false;
+        }
+      }
+      this.applyFilter();
     },
     changeTab: function(tab) {
       this.current_tab = tab;
