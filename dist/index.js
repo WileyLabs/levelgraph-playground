@@ -5966,25 +5966,24 @@ window.app = new Vue({
       }
     },
     applyFilter: function() {
-      this.filtered = true;
+      if (this.filter.subject === ''
+        && this.filter.predicate === ''
+        && this.filter.object === '') {
+        this.filtered = false;
+      } else {
+        this.filtered = true;
+      }
       this.displayTriples(this.actual_filter);
     },
     removeFilter: function(filter) {
-      console.log('filter', filter, this.filter);
       if (undefined === filter) {
         this.filter = {
           subject: '',
           predicate: '',
           object: ''
         };
-        this.filtered = false;
       } else {
         this.filter[filter] = '';
-        if (this.filter.subject === ''
-          && this.filter.predicate === ''
-          && this.filter.object === '') {
-          this.filtered = false;
-        }
       }
       this.applyFilter();
     },
