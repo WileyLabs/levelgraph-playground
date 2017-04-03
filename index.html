@@ -96,10 +96,8 @@
             subject
           </th>
           <th class="four wide">predicate</th>
-          <th class="four wide">object</th>
-          <th class="three wide">
-            graph
-          </th>
+          <th class="five wide">object</th>
+          <th class="two wide"></th>
           <th class="one wide">
             <button @click="empty()" class="ui right floated tiny negative button">empty</button>
           </th>
@@ -145,8 +143,7 @@
         <tr v-for="(spo, idx) in actual_table">
           <td :title="spo.subject">{{spo.subject}}</td>
           <td :title="spo.predicate">{{spo.predicate}}</td>
-          <td :title="spo.object">{{spo.object}}</td>
-          <td :title="spo.graph">{{spo.graph}}</td>
+          <td :title="spo.object" colspan="2">{{spo.object}}</td>
           <td>
             <div class="ui mini hover-hidden right floated buttons">
               <div class="ui icon button" @click="setFilter(spo)">
