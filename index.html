@@ -14,8 +14,8 @@
   [v-cloak] {display: none}
   .tabular.menu .item {cursor: pointer}
   #app {margin: 1%}
-  .ui.buttons.hover-hidden {display: none}
-  tr:hover .ui.buttons.hover-hidden {display: inherit}
+  .ui.hover-hidden {display: none}
+  tr:hover .ui.hover-hidden {display: inherit}
   tr td .ui.input {display: none}
   .compact.table tbody td:last-child {padding: 0}
   .ui.bottom.attached.segment {padding:0}
@@ -153,9 +153,27 @@
       </thead>
       <tbody v-cloak>
         <tr v-for="(spo, idx) in actual_table">
-          <td :title="spo.subject">{{spo.subject}}</td>
-          <td :title="spo.predicate">{{spo.predicate}}</td>
-          <td :title="spo.object" colspan="2">{{spo.object}}</td>
+          <td :title="spo.subject">
+            {{spo.subject}}
+            <button class="ui mini hover-hidden right floated icon button"
+              @click="filter.subject = spo.subject; applyFilter()">
+              <i class="filter icon"></i>
+            </button>
+          </td>
+          <td :title="spo.predicate">
+            {{spo.predicate}}
+            <button class="ui mini hover-hidden right floated icon button"
+              @click="filter.predicate = spo.predicate; applyFilter()">
+              <i class="filter icon"></i>
+            </button>
+          </td>
+          <td :title="spo.object" colspan="2">
+            {{spo.object}}
+            <button class="ui mini hover-hidden right floated icon button"
+              @click="filter.object = spo.object; applyFilter()">
+              <i class="filter icon"></i>
+            </button>
+          </td>
           <td>
             <div class="ui mini hover-hidden right floated buttons">
               <div class="ui icon button" @click="setFilter(spo)">
