@@ -122,7 +122,7 @@
             </div>
           </th>
           <th>
-            <div class="ui fluid input" :class="{action: filtered & filter.object}">
+            <div class="ui fluid input" :class="{action: filtered && filter.object}">
               <input v-model="filter.object" @keyup.enter="applyFilter()">
               <button class="ui basic icon button"
                 v-if="filtered && filter.object" @click="removeFilter('object')">
