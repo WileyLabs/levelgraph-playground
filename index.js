@@ -5,6 +5,8 @@ var leveljs = require('level-js');
 var levelup = require('levelup');
 var levelgraphJSONLD = require('levelgraph-jsonld');
 var levelgraphN3 = require('levelgraph-n3');
+window.N3 = N3 = require('n3');
+window.term = term = require('./utils.js').term;
 
 // Use futuristic Fetch() API
 require('es6-promise').polyfill();
@@ -60,6 +62,14 @@ Vue.component('code-mirror', require('./code-mirror'));
 
 Vue.component('package-json', require('./package-json.vue'));
 
+function removeEmpties(spo) {
+  // TODO: certainly  there's a better way to "clean" this object...later...maybe
+  if (spo.subject === '') delete spo.subject;
+  if (spo.predicate === '') delete spo.predicate;
+  if (spo.object === '') delete spo.object;
+  return spo;
+}
+
 window.app = new Vue({
   el: '#app',
   data: {
@@ -83,7 +93,9 @@ window.app = new Vue({
     current_tab: 'json-ld',
     limit: 100,
     offset: 0,
-    filtered: false
+    filtered: false,
+    output_jsonld: '',
+    output_n3: ''
   },
   watch: {
     current_tab: function(v) {
@@ -91,7 +103,9 @@ window.app = new Vue({
       // DOM changing...wait for it...
       Vue.nextTick(function() {
         // TODO: ugh...context leakage...nasty stuff
-        self.$refs[self.input_type].refresh();
+        if (self.input_type) {
+          self.$refs[self.input_type].refresh();
+        }
       });
     }
   },
@@ -108,20 +122,22 @@ window.app = new Vue({
         object: object
       };
 
-      // TODO: certainly  there's a better way to "clean" this object...later...maybe
-      if (spo.subject === '') delete spo.subject;
-      if (spo.predicate === '') delete spo.predicate;
-      if (spo.object === '') delete spo.object;
+      spo = removeEmpties(spo);
 
       return spo;
     },
     input_type: function() {
+      // TODO: this is embarrasingly bad...
       if (this.current_tab === 'json-ld') {
         return 'jsonld';
       } else if (this.current_tab === 'n3') {
         return 'n3';
+      } else if (this.current_tab === 'output-jsonld') {
+        return 'output-jsonld';
+      } else if (this.current_tab === 'output-n3') {
+        return 'output-n3';
       } else {
-        throw Error('Hrm...current_tab got messed up somehow...');
+        return false;
       }
     },
     actual_table: function() {
@@ -245,6 +261,36 @@ window.app = new Vue({
         }
       });
       // TODO: switch to the changes feed once that's a thing
+    },
+    output: function(type) {
+      var self = this;
+      var filter = removeEmpties(JSON.parse(JSON.stringify(this.filter)));
+      if (type === 'n3') {
+        db.n3.get(filter, function(err, rv) {
+          self.output_n3 = rv;
+          // TODO: hackilicious...we should fix this...
+          self.$refs['output-n3'].editor.setValue(self.output_n3);
+          self.$refs['output-n3'].refresh();
+        });
+      } else {
+        db.get(filter, function(err, rv) {
+          if (err) throw err;
+          var graphs = [];
+          rv.forEach((triple) => {
+            graphs.push({
+              subject: term(triple.subject),
+              predicate: term(triple.predicate),
+              object: term(triple.object)
+            });
+          });
+          jsonld.fromRDF({'@default': graphs}, function(err, rv) {
+            self.output_jsonld = JSON.stringify(rv, null, '  ');
+            // TODO: hackilicious...we should fix this...
+            self.$refs['output-jsonld'].editor.setValue(self.output_jsonld);
+            self.$refs['output-jsonld'].refresh();
+          });
+        });
+      }
     }
   }
 });

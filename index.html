@@ -39,16 +39,27 @@
         a graph database for Node.js and browsers
       </div>
     </h1>
-    <div class="ui form">
-      <div class="ui field">
         <div class="ui top attached tabular menu">
+          <div class="disabled header item">Input:</div>
           <div class="item"
             :class="{active: current_tab === 'json-ld'}"
             @click="changeTab('json-ld')">JSON-LD</div>
           <div class="item"
             :class="{active: current_tab === 'n3'}"
             @click="changeTab('n3')">N3/Turtle</div>
+
+          <div class="right menu">
+            <div class="disabled header item">Output:</div>
+            <div class="item"
+              :class="{active: current_tab === 'output-jsonld'}"
+              @click="changeTab('output-jsonld')">JSON-LD</div>
+            <div class="item"
+              :class="{active: current_tab === 'output-n3'}"
+              @click="changeTab('output-n3')">N3/Turtle</div>
+          </div>
         </div>
+
+        <!-- input textareas -->
         <div class="ui bottom attached tab segment" style="padding: inherit 0"
           :class="{active: current_tab === 'json-ld'}">
           <code-mirror :code="input.jsonld" :options="{mode: 'application/ld+json'}" ref="jsonld"></code-mirror>
@@ -82,8 +93,30 @@
             </div>
           </div>
         </div>
-      </div>
-    </div>
+
+        <!-- output textareas -->
+        <div class="ui bottom attached tab segment" style="padding: inherit 0"
+          :class="{active: current_tab === 'output-jsonld'}">
+          <code-mirror :code="output_jsonld" :options="{mode: 'application/ld+json'}" ref="output-jsonld"></code-mirror>
+          <div class="ui borderless bottom attached menu">
+            <div class="item">
+              <button class="ui positive labeled icon button" @click="output('json-ld')">
+                <i class="arrow up icon"></i> Load From Results
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="ui bottom attached tab segment" style="padding: inherit 0"
+          :class="{active: current_tab === 'output-n3'}">
+          <code-mirror :code="output_n3" :options="{mode: 'text/turtle'}" ref="output-n3"></code-mirror>
+          <div class="ui borderless bottom attached menu">
+            <div class="item">
+              <button class="ui positive labeled icon button" @click="output('n3')">
+                <i class="arrow up icon"></i> Load From Results
+              </button>
+            </div>
+          </div>
+        </div>
 
     <table class="ui compact fixed table">
       <thead>
