@@ -25,29 +25,15 @@ window.db = db;
 
 var default_jsonld = JSON.stringify({
   "@context": {
-    "generatedAt": {
-      "@id": "http://www.w3.org/ns/prov#generatedAtTime",
-      "@type": "http://www.w3.org/2001/XMLSchema#date"
-    },
-    "Person": "http://xmlns.com/foaf/0.1/Person",
-    "name": "http://xmlns.com/foaf/0.1/name",
-    "knows": "http://xmlns.com/foaf/0.1/knows"
+    "@vocab": "http://xmlns.com/foaf/0.1/",
   },
-  "@id": "http://example.org/graphs/73",
-  "generatedAt": "2012-04-09",
-  "@graph":
-  [
+  "@id": "http://bigbluehat.com/#",
+  "name": "BigBlueHat",
+  "knows": [
     {
-      "@id": "http://manu.sporny.org/about#manu",
-      "@type": "Person",
+      "@id": "http://manu.sporny.org#person",
       "name": "Manu Sporny",
-      "knows": "http://greggkellogg.net/foaf#me"
-    },
-    {
-      "@id": "http://greggkellogg.net/foaf#me",
-      "@type": "Person",
-      "name": "Gregg Kellogg",
-      "knows": "http://manu.sporny.org/about#manu"
+      "homepage": "http://manu.sporny.org/"
     }
   ]
 }, null, 2);
