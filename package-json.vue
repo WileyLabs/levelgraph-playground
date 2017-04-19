@@ -1,6 +1,6 @@
 <template>
   <div class="ui simple right floated basic dropdown button">
-    depenencies
+    dependencies
     <i class="dropdown icon"></i>
     <div class="menu" style="left: auto; right: 0; width: 20em">
       <a class="link item" target="_blank"
