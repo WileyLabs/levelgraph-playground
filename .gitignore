@@ -1,1 +1,5 @@
 node_modules/*
+
+cert.pem
+key.pem
+key.pub
