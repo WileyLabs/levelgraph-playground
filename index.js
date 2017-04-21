@@ -1,4 +1,7 @@
+var VueX = require('vuex');
 var Vue = require('vue');
+Vue.use(VueX);
+
 
 var levelgraph = require('levelgraph');
 var leveljs = require('level-js');
@@ -22,6 +25,50 @@ var db = levelgraphN3(
   )
 );
 window.db = db;
+
+window.context = context = {
+  "@context": {
+    "dct": "http://purl.org/dc/terms/",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "xml": "http://www.w3.org/XML/1998/namespace",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "foaf": "http://xmlns.com/foaf/0.1/",
+    "mesh": "https://www.nlm.nih.gov/mesh/#",
+    "prov": "http://www.w3.org/ns/prov#",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "skos": "http://www.w3.org/2004/02/skos/core#",
+    "wbas": "https://ontology.wiley.com/Base#",
+    "wdat": "https://data.wiley.com/",
+    "wpub": "https://vocabulary.wiley.com/PublicationType/",
+    "fabio": "http://purl.org/spar/fabio/",
+    "@base": "https://vocabulary.wiley.com/PublicationType/",
+    "@language": "en"
+  }
+};
+
+const VueJSONLD = {
+  install(Vue, options) {
+    Vue.prototype['@context'] = context['@context'];
+  }
+};
+Vue.use(VueJSONLD);
+
+var invert = function (obj) {
+  var new_obj = {};
+  for (var prop in obj) {
+    if(obj.hasOwnProperty(prop)) {
+      new_obj[obj[prop]] = prop;
+    }
+  }
+  return new_obj;
+};
+
+window.context_flipped = (function() {
+  let temp = context['@context'];
+  delete temp['@base']; // temp's a duplicate for us...
+  return invert(temp);
+})();
 
 var default_jsonld = JSON.stringify({
   "@context": {
@@ -48,6 +95,40 @@ Vue.component('code-mirror', require('./src/code-mirror'));
 
 Vue.component('package-json', require('./src/package-json.vue'));
 
+const store = new VueX.Store({
+  state: {
+    current_scheme: '',
+    current_concept: {}
+  },
+  mutations: {
+    setActiveScheme(state, payload) {
+      state.current_scheme = uncurie(payload.scheme);
+    },
+    setActiveConcept(state, payload) {
+      state.current_concept = uncurie(payload.concept);
+    }
+  },
+  actions: {
+    setActiveScheme({ commit }, payload) {
+      console.log('dispatching');
+      commit('setActiveConcept', {concept: {}});
+      commit('setActiveScheme', payload);
+    }
+  }
+});
+
+Vue.component('skos-viewer', require('./src/skos/viewer.vue'));
+Vue.component('triple-list', require('./src/triple-list.js'));
+
+Vue.component('rdfa-thing', require('./src/rdfa-thing.vue'));
+Vue.component('rdf-field', require('./src/rdf-field.vue'));
+Vue.component('rdf-item', require('./src/rdf-item.vue'));
+
+Vue.component('skos-concept-scheme', require('./src/skos/concept-scheme.vue'));
+Vue.component('skos-concept-scheme-filter-link', require('./src/skos/concept-scheme-filter-link.vue'));
+Vue.component('skos-concept', require('./src/skos/concept.vue'));
+Vue.component('skos-concept-table', require('./src/skos/concept-table.vue'));
+
 function removeEmpties(spo) {
   // TODO: certainly  there's a better way to "clean" this object...later...maybe
   if (spo.subject === '') delete spo.subject;
@@ -56,8 +137,34 @@ function removeEmpties(spo) {
   return spo;
 }
 
+window.curie = function(v) {
+  let finds = Object.keys(context_flipped).filter((iri) => {
+    return v.match(iri);
+  });
+  return context_flipped[finds[0]] + ':' + v.replace(finds[0], '');
+};
+
+window.uncurie = function(v) {
+  return N3.Util.expandPrefixedName(v, context['@context']);
+};
+
+Vue.filter('curie', curie);
+Vue.filter('uncurie', uncurie);
+Vue.filter('@value', (v, lang) => {
+  if (Array.isArray(v) && v.length === 1) {
+    // TODO: ...yeah...there's more stuff to happen here...
+    if (v[0]['@language'] === lang) {
+      return v[0]['@value'];
+    } else {
+      // TODO: should this fall back to an unknown lang?
+      return v[0]['@value'];
+    }
+  }
+});
+
 window.app = new Vue({
   el: '#app',
+  store,
   data: {
     input: {
       jsonld: default_jsonld,
