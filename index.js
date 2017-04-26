@@ -106,12 +106,8 @@ const store = new VueX.Store({
 });
 
 Vue.component('skos-viewer', require('./src/skos/viewer.vue'));
-Vue.component('triple-list', require('./src/triple-list.js'));
-
-Vue.component('rdfa-thing', require('./src/rdfa-thing.vue'));
-Vue.component('rdf-field', require('./src/rdf-field.vue'));
-Vue.component('rdf-item', require('./src/rdf-item.vue'));
-
+Vue.component('triple-list', require('./src/skos/triple-list.js'));
+Vue.component('rdf-item', require('./src/skos/rdf-item.vue'));
 Vue.component('skos-concept-scheme', require('./src/skos/concept-scheme.vue'));
 Vue.component('skos-concept-scheme-filter-link', require('./src/skos/concept-scheme-filter-link.vue'));
 Vue.component('skos-concept', require('./src/skos/concept.vue'));

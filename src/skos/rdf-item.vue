@@ -1,7 +1,7 @@
 <template>
   <div>
     <div v-if="val.length && typeof val !== 'string'">
-      <skos-concept v-for="concept in val" :self="concept"></rdf-item>
+      <skos-concept v-for="concept in val" :self="concept"></skos-concept>
     </div>
     <div v-else-if="Object.keys(val).length === 1 && val['@value']">
       {{val['@value']}}
