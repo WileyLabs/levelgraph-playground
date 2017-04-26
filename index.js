@@ -1,32 +1,19 @@
-var VueX = require('vuex');
-var Vue = require('vue');
+const VueX = require('vuex');
+const Vue = require('vue');
 Vue.use(VueX);
 
+const VueLevelGraph = require('./src/vue-levelgraph.js');
+// TODO: fix the typo in the db name...requires migration T_T
+Vue.use(VueLevelGraph, {name: 'levelgraph-playgrond'});
 
-var levelgraph = require('levelgraph');
-var leveljs = require('level-js');
-var levelup = require('levelup');
-var levelgraphJSONLD = require('levelgraph-jsonld');
-var levelgraphN3 = require('levelgraph-n3');
-window.N3 = N3 = require('n3');
-window.term = term = require('./utils.js').term;
+const N3 = require('n3');
+const term = require('./utils.js').term;
 
 // Use futuristic Fetch() API
 require('es6-promise').polyfill();
 require('isomorphic-fetch');
 
-var factory = function (location) { return new leveljs(location) };
-
-var db = levelgraphN3(
-  levelgraphJSONLD(
-    levelgraph(
-      levelup('levelgraph-playgrond', {db: factory})
-    )
-  )
-);
-window.db = db;
-
-window.context = context = {
+let context = {
   "@context": {
     "dct": "http://purl.org/dc/terms/",
     "owl": "http://www.w3.org/2002/07/owl#",
@@ -46,6 +33,7 @@ window.context = context = {
     "@language": "en"
   }
 };
+window.context = context;
 
 const VueJSONLD = {
   install(Vue, options) {
@@ -243,7 +231,7 @@ window.app = new Vue({
   methods: {
     displayTriples: function(spo) {
       var self = this;
-      db.get(spo, function(err, list) {
+      self.$db.get(spo, function(err, list) {
         self.table = list;
       });
     },
@@ -284,9 +272,9 @@ window.app = new Vue({
       var self = this;
       // this...is dangerous...unless demo
       if (confirm("Really? You're sure?")) {
-        db.get({}, function(err, list) {
+        self.$db.get({}, function(err, list) {
           if (err) console.error(err);
-          db.del(list, function(err) {
+          self.$db.del(list, function(err) {
             if (err) console.error(err);
             self.displayTriples({});
           });
@@ -327,7 +315,7 @@ window.app = new Vue({
     addSPO: function() {
       var self = this;
       if (self.filter.subject !== '' && self.filter.predicate !== '' && self.filter.object !== '') {
-        db.put(self.filter, function(err) {
+        self.$db.put(self.filter, function(err) {
           if (err) {
             console.error(err);
           } else {
@@ -345,7 +333,7 @@ window.app = new Vue({
     removeSPO: function(spo, idx) {
       var self = this;
       // remove it from the database
-      db.del(spo, function(err) {
+      self.$db.del(spo, function(err) {
         if (err) {
           console.error(err);
         } else {
@@ -359,14 +347,14 @@ window.app = new Vue({
       var self = this;
       var filter = removeEmpties(JSON.parse(JSON.stringify(this.filter)));
       if (type === 'n3') {
-        db.n3.get(filter, function(err, rv) {
+        self.$db.n3.get(filter, function(err, rv) {
           self.output_n3 = rv;
           // TODO: hackilicious...we should fix this...
           self.$refs['output-n3'].editor.setValue(self.output_n3);
           self.$refs['output-n3'].refresh();
         });
       } else {
-        db.get(filter, function(err, rv) {
+        self.$db.get(filter, function(err, rv) {
           if (err) throw err;
           var graphs = [];
           rv.forEach((triple) => {

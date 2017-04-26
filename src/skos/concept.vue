@@ -57,7 +57,7 @@ export default {
     var self = this;
     if (this.resource) {
       self.dom_id = btoa(this.resource);
-      db.jsonld.get(this.resource, context,
+      self.$db.jsonld.get(this.resource, context,
         {compactArrays: false, graph: true},
         function(err, rv) {
           let temp = rv;

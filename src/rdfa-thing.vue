@@ -117,7 +117,7 @@ export default {
       var self = this;
       if (this.resource) {
         // TODO: fix global assumptions
-        db.jsonld.get(this.resource, context, function(err, rv) {
+        self.$db.jsonld.get(this.resource, context, function(err, rv) {
           var compacted = rv;
           // don't need to see this over and over
           delete compacted['@context'];
@@ -146,7 +146,7 @@ export default {
     // avoid returning the full database
     if (Object.keys(filter).length > 0) {
       // TODO: fix global assumptions
-      db.get(filter, function(err, rv) {
+      self.$db.get(filter, function(err, rv) {
         self.triples = rv;
       });
     }

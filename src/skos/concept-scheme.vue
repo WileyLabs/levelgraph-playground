@@ -46,7 +46,7 @@ export default {
     if (this.resource) {
       self.dom_id = btoa(this.resource);
       // TODO: fix global assumptions
-      db.jsonld.get(this.resource, context, {compactArrays: false}, function(err, rv) {
+      self.$db.jsonld.get(this.resource, context, {compactArrays: false}, function(err, rv) {
         // everything's tucked in an @graph because of ^^
         self.compacted = rv['@graph'][0];
         // TODO: not really sure what all this may effect...

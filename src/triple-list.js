@@ -36,7 +36,7 @@ module.exports = {
       if (Object.keys(filter).length > 0) {
         // TODO: fix the `db` global assumption
         self.triples = [];
-        db.get(filter, function(err, rv) {
+        self.$db.get(filter, function(err, rv) {
           self.triples = rv;
         });
       }
