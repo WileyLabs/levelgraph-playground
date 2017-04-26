@@ -1,9 +1,9 @@
 <template>
-<div class="ui two column grid">
-  <div class="two wide column">
+<div class="ui grid">
+  <div class="three wide column">
     <triple-list inline-template
       typeof="http://www.w3.org/2004/02/skos/core#ConceptScheme">
-      <div class="ui vertical menu">
+      <div class="ui fluid vertical menu">
         <skos-concept-scheme
            v-for="triple in triples"
            v-if="triple.subject"
@@ -12,7 +12,7 @@
       </div>
     </triple-list>
   </div>
-  <div class="seven wide column">
+  <div class="six wide column">
     <triple-list inline-template ref="right"
       predicate="http://www.w3.org/2004/02/skos/core#inScheme"
       :object="current_scheme">
