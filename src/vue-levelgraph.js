@@ -15,4 +15,21 @@ export function install(Vue, options) {
       )
     )
   );
+
+  Vue.mixin({
+    methods: {
+      getInto(keypath, filter) {
+        let self = this;
+        // avoids getting {}...which returns *everything*
+        if (Object.keys(filter).length > 0) {
+          self.$db.get(filter, (err, rv) => {
+            if (err) throw err;
+            else {
+              self[keypath] = rv;
+            }
+          });
+        }
+      }
+    }
+  });
 };

@@ -1,28 +1,19 @@
 <template>
 <div class="ui grid">
   <div class="three wide column">
-    <triple-list inline-template
-      typeof="http://www.w3.org/2004/02/skos/core#ConceptScheme">
-      <div class="ui fluid vertical menu">
-        <skos-concept-scheme
-           v-for="triple in triples"
-           v-if="triple.subject"
-           :resource="triple.subject">
-        </skos-concept-scheme>
-      </div>
-    </triple-list>
+    <div class="ui fluid vertical menu">
+      <skos-concept-scheme
+         v-for="triple in schemes"
+         v-if="triple.subject"
+         :resource="triple.subject">
+      </skos-concept-scheme>
+    </div>
   </div>
   <div class="six wide column">
-    <triple-list inline-template ref="right"
-      predicate="http://www.w3.org/2004/02/skos/core#inScheme"
-      :object="current_scheme">
-      <div>
-        <h2 class="ui header">{{object | curie}}</h2>
-        <div class="ui divided link items">
-          <skos-concept v-for="t in triples" :resource="t.subject"></skos-concept>
-        </div>
-      </div>
-    </triple-list>
+    <h2 class="ui header">{{current_scheme | curie}}</h2>
+    <div class="ui divided link items">
+      <skos-concept v-for="t in concepts" :resource="t.subject" :key="t.subject"></skos-concept>
+    </div>
   </div>
   <div class="seven wide column">
       <skos-concept-table :self="current_concept"></skos-concept-table>
@@ -32,7 +23,19 @@
 
 <script>
 export default {
+  data() {
+    return {
+      schemes: [],
+      concepts: []
+    }
+  },
+  watch: {
+    current_scheme() {
+      this.getConcepts();
+    }
+  },
   created() {
+    this.getSchemes();
     // set default scheme
     this.$store.dispatch('setActiveScheme', {
       scheme: 'wpub:AbstractScheme'
@@ -44,6 +47,20 @@ export default {
     },
     current_concept() {
       return this.$store.state.current_concept;
+    }
+  },
+  methods: {
+    getSchemes() {
+      this.getInto('schemes', {
+        predicate: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#type',
+        object: 'http://www.w3.org/2004/02/skos/core#ConceptScheme'
+      });
+    },
+    getConcepts() {
+      this.getInto('concepts', {
+        predicate: 'http://www.w3.org/2004/02/skos/core#inScheme',
+        object: this.current_scheme
+      });
     }
   }
 }
