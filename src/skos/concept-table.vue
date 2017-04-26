@@ -10,7 +10,8 @@
         <rdf-item v-else :label="key" :val="val"></rdf-item>
       </td>
       <td v-else>
-        <a is="skos-concept-scheme-filter-link" :self="val[0]"></a>
+        <a is="skos-concept-scheme-filter-link"
+           v-for="obj in val" :self="obj"></a>
       </td>
     </tr>
     </tbody>
