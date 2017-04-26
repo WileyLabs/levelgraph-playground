@@ -82,7 +82,7 @@ export default {
   },
   filters: {
     as_fragment(v) {
-      // TODO: fix `context` global leak
+      // TODO: fix global `context` assumptions
       return '#' + btoa(N3Util.expandPrefixedName(v, context['@context']));
     }
   }

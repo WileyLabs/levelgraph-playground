@@ -34,7 +34,6 @@ module.exports = {
       }
       // avoid returning the full database
       if (Object.keys(filter).length > 0) {
-        // TODO: fix the `db` global assumption
         self.triples = [];
         self.$db.get(filter, function(err, rv) {
           self.triples = rv;

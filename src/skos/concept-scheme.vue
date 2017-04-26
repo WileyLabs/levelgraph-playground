@@ -45,7 +45,7 @@ export default {
     var self = this;
     if (this.resource) {
       self.dom_id = btoa(this.resource);
-      // TODO: fix global assumptions
+      // TODO: fix global `context` assumptions
       self.$db.jsonld.get(this.resource, context, {compactArrays: false}, function(err, rv) {
         // everything's tucked in an @graph because of ^^
         self.compacted = rv['@graph'][0];
@@ -67,7 +67,7 @@ export default {
   },
   filters: {
     as_fragment(v) {
-      // TODO: fix `context` global leak
+      // TODO: fix global `context` assumptions
       return '#' + btoa(N3Util.expandPrefixedName(v, context['@context']));
     }
   }
