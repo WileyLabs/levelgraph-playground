@@ -83,7 +83,7 @@ export default {
   filters: {
     as_fragment(v) {
       // TODO: fix global `context` assumptions
-      return '#' + btoa(N3Util.expandPrefixedName(v, context['@context']));
+      return '#' + btoa(uncurie(v, context['@context']));
     }
   }
 };

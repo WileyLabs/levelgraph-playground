@@ -14,7 +14,7 @@
       <a :href="val['@value']" target="_blank">{{val['@value']}}</a>
     </div>
     <div v-else-if="val['@id']">
-      <a :href="val['@id'] | expanded_name" target="_blank">{{val['@id']}}
+      <a :href="val['@id'] | uncurie" target="_blank">{{val['@id'] | curie}}
         <i class="external icon"></i>
       </a>
     </div>
@@ -23,14 +23,7 @@
 </template>
 
 <script>
-const N3Util = require('n3').Util;
-
 export default {
-  props: ['label', 'val'],
-  filters: {
-    expanded_name(v) {
-      return N3Util.expandPrefixedName(v, context['@context']);
-    }
-  }
+  props: ['label', 'val']
 }
 </script>

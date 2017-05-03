@@ -38,7 +38,7 @@ export default {
       }
     },
     isActive() {
-      return this.$store.state.current_scheme === N3Util.expandPrefixedName(this.compacted['@id'], context['@context']);
+      return this.$store.state.current_scheme === uncurie(this.compacted['@id'], context['@context']);
     }
   },
   created() {
@@ -68,7 +68,7 @@ export default {
   filters: {
     as_fragment(v) {
       // TODO: fix global `context` assumptions
-      return '#' + btoa(N3Util.expandPrefixedName(v, context['@context']));
+      return '#' + btoa(uncurie(v, context['@context']));
     }
   }
 };
