@@ -32,14 +32,20 @@ export default {
   watch: {
     current_scheme() {
       this.getConcepts();
+    },
+    schemes() {
+      if (this.schemes.length > 0) {
+        console.log(this.schemes[0].subject);
+        // set default scheme to the first one found
+        this.$store.dispatch('setActiveScheme', {
+          // TODO: require curie from some place...unglobal...
+          scheme: curie(this.schemes[0].subject)
+        });
+      }
     }
   },
   created() {
     this.getSchemes();
-    // set default scheme
-    this.$store.dispatch('setActiveScheme', {
-      scheme: 'wpub:AbstractScheme'
-    });
   },
   computed: {
     current_scheme() {
