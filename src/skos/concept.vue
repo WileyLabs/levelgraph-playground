@@ -82,8 +82,7 @@ export default {
   },
   filters: {
     as_fragment(v) {
-      // TODO: fix global `context` assumptions
-      return '#' + btoa(uncurie(v, context['@context']));
+      return '#' + btoa(this.uncurie(v));
     }
   }
 };

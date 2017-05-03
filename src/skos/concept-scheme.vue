@@ -38,7 +38,7 @@ export default {
       }
     },
     isActive() {
-      return this.$store.state.current_scheme === uncurie(this.compacted['@id'], context['@context']);
+      return this.$store.state.current_scheme === this.uncurie(this.compacted['@id']);
     }
   },
   created() {
@@ -67,8 +67,7 @@ export default {
   },
   filters: {
     as_fragment(v) {
-      // TODO: fix global `context` assumptions
-      return '#' + btoa(uncurie(v, context['@context']));
+      return '#' + btoa(this.uncurie(v));
     }
   }
 };

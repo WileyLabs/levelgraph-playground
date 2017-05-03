@@ -38,8 +38,7 @@ export default {
         console.log(this.schemes[0].subject);
         // set default scheme to the first one found
         this.$store.dispatch('setActiveScheme', {
-          // TODO: require curie from some place...unglobal...
-          scheme: curie(this.schemes[0].subject)
+          scheme: this.curie(this.schemes[0].subject)
         });
       }
     }
@@ -49,10 +48,10 @@ export default {
   },
   computed: {
     current_scheme() {
-      return this.$store.state.current_scheme;
+      return this.uncurie(this.$store.state.current_scheme);
     },
     current_concept() {
-      return this.$store.state.current_concept;
+      return this.uncurie(this.$store.state.current_concept);
     }
   },
   methods: {

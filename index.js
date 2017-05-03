@@ -35,28 +35,61 @@ let context = {
 };
 window.context = context;
 
+
 const VueJSONLD = {
   install(Vue, options) {
-    Vue.prototype['@context'] = context['@context'];
+    Vue.prototype['@context'] = options['@context'];
+
+    // TODO: move out of install()
+    function invert(obj) {
+      var new_obj = {};
+      for (var prop in obj) {
+        if(obj.hasOwnProperty(prop)) {
+          new_obj[obj[prop]] = prop;
+        }
+      }
+      return new_obj;
+    };
+
+    // TODO: can @context be changed later in the app? if so (or when), this
+    // needs to handle those changes
+    let context_flipped = (function() {
+      let temp = options['@context'];
+      delete temp['@base']; // temp's a duplicate for us...
+      return invert(temp);
+    })();
+
+    let curie = function(v) {
+      let finds = Object.keys(context_flipped).filter((iri) => {
+        return v.match(iri);
+      });
+      return context_flipped[finds[0]] + ':' + v.replace(finds[0], '');
+    };
+    Vue.prototype.curie = curie;
+    Vue.filter('curie', curie);
+
+    let uncurie = function(v) {
+      return N3.Util.expandPrefixedName(v, context['@context']);
+    };
+    Vue.prototype.uncurie = uncurie;
+    Vue.filter('uncurie', uncurie);
+
+    // clean up @value objects + (optional) @language selection
+    Vue.filter('@value', (v, lang) => {
+      if (Array.isArray(v) && v.length === 1) {
+        // TODO: ...yeah...there's more stuff to happen here...
+        if (v[0]['@language'] === lang) {
+          return v[0]['@value'];
+        } else {
+          // TODO: should this fall back to an unknown lang?
+          return v[0]['@value'];
+        }
+      }
+    });
   }
 };
-Vue.use(VueJSONLD);
+Vue.use(VueJSONLD, {'@context': context['@context']});
 
-var invert = function (obj) {
-  var new_obj = {};
-  for (var prop in obj) {
-    if(obj.hasOwnProperty(prop)) {
-      new_obj[obj[prop]] = prop;
-    }
-  }
-  return new_obj;
-};
-
-window.context_flipped = (function() {
-  let temp = context['@context'];
-  delete temp['@base']; // temp's a duplicate for us...
-  return invert(temp);
-})();
 
 var default_jsonld = JSON.stringify({
   "@context": {
@@ -90,10 +123,10 @@ const store = new VueX.Store({
   },
   mutations: {
     setActiveScheme(state, payload) {
-      state.current_scheme = uncurie(payload.scheme);
+      state.current_scheme = payload.scheme;
     },
     setActiveConcept(state, payload) {
-      state.current_concept = uncurie(payload.concept);
+      state.current_concept = payload.concept;
     }
   },
   actions: {
@@ -119,31 +152,6 @@ function removeEmpties(spo) {
   if (spo.object === '') delete spo.object;
   return spo;
 }
-
-window.curie = function(v) {
-  let finds = Object.keys(context_flipped).filter((iri) => {
-    return v.match(iri);
-  });
-  return context_flipped[finds[0]] + ':' + v.replace(finds[0], '');
-};
-
-window.uncurie = function(v) {
-  return N3.Util.expandPrefixedName(v, context['@context']);
-};
-
-Vue.filter('curie', curie);
-Vue.filter('uncurie', uncurie);
-Vue.filter('@value', (v, lang) => {
-  if (Array.isArray(v) && v.length === 1) {
-    // TODO: ...yeah...there's more stuff to happen here...
-    if (v[0]['@language'] === lang) {
-      return v[0]['@value'];
-    } else {
-      // TODO: should this fall back to an unknown lang?
-      return v[0]['@value'];
-    }
-  }
-});
 
 window.app = new Vue({
   el: '#app',
