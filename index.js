@@ -242,7 +242,7 @@ window.app = new Vue({
       var self = this;
       // TODO: refs are handy, but this feels "off"
       if (this.input_type === 'jsonld') {
-      db[this.input_type].put(
+      this.$db[this.input_type].put(
         this.$refs[this.input_type].value,
         this.config[this.input_type],
         function(err, obj) {
@@ -252,7 +252,7 @@ window.app = new Vue({
       } else {
         // ...the new .put() signatures no longer match between JSON-LD & N3 extensions
         // TODO: help make them match (again)
-        db[this.input_type].put(
+        this.$db[this.input_type].put(
           this.$refs[this.input_type].value,
           function(err, obj) {
             // do something after the obj is inserted
@@ -263,7 +263,7 @@ window.app = new Vue({
     del: function() {
       var self = this;
       // TODO: this is JSON-LD only...time to move stuff around...
-      db[this.input_type].del(
+      this.$db[this.input_type].del(
         this.$refs[this.input_type].value,
         this.config[this.input_type],
         function(err, obj) {
