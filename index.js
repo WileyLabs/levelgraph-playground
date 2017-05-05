@@ -63,7 +63,12 @@ const VueJSONLD = {
       let finds = Object.keys(context_flipped).filter((iri) => {
         return v.match(iri);
       });
-      return context_flipped[finds[0]] + ':' + v.replace(finds[0], '');
+      if (finds[0] in context_flipped) {
+        return context_flipped[finds[0]] + ':' + v.replace(finds[0], '');
+      } else {
+        // curie-ing failed...return passed in value...
+        return v;
+      }
     };
     Vue.prototype.curie = curie;
     Vue.filter('curie', curie);
