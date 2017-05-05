@@ -11,6 +11,7 @@
     <div class="description">
       <p>{{compacted['definition'] | @value}}</p>
     </div>
+  </div>
 </div>
 </template>
 
