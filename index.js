@@ -290,6 +290,8 @@ window.app = new Vue({
       }
     },
     applyFilter: function() {
+      // always reset offset so we start at the beginning
+      this.offset = 0;
       if (this.filter.subject === ''
         && this.filter.predicate === ''
         && this.filter.object === '') {
