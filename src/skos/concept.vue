@@ -16,8 +16,6 @@
 </template>
 
 <script>
-const N3Util = require('n3').Util;
-
 const context = {
   "@context": {
     "@vocab": "http://www.w3.org/2004/02/skos/core#",

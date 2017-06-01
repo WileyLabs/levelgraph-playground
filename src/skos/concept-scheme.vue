@@ -16,8 +16,6 @@
 </template>
 
 <script>
-const N3Util = require('n3').Util;
-
 export default {
   props: ['resource', 'typeof', 'self'],
   data() {
