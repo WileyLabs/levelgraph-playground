@@ -44,9 +44,9 @@ var default_n3 = '@prefix foaf: <http://xmlns.com/foaf/0.1/>.\n\n'
 + '  foaf:workHomepage "http://wiley.com/" ;\n'
 + '  foaf:knows <https://www.w3.org/People/Berners-Lee/card#i>.'
 
-Vue.component('code-mirror', require('./code-mirror'));
+Vue.component('code-mirror', require('./src/code-mirror'));
 
-Vue.component('package-json', require('./package-json.vue'));
+Vue.component('package-json', require('./src/package-json.vue'));
 
 function removeEmpties(spo) {
   // TODO: certainly  there's a better way to "clean" this object...later...maybe
