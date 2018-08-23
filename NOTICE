@@ -1,0 +1,34 @@
+LevelGraph Playground
+Copyright 2017-2018 John Wiley & Sons, Inc.
+
+This product depends on or includes material copied from or derived from the
+following code:
+
+All of the following code modules are dependencies available at
+https://npmjs.org/packages/{name}
+
+  abstract-leveldown@5.0.0 [license(s): MIT]
+  bindings@1.3.0 [license(s): MIT]
+  browserify@16.2.2 [license(s): MIT]
+  codemirror@5.39.2 [license(s): MIT]
+  codemirror-jsonld-hint@1.0.1 [license(s): MIT]
+  colors@1.0.3 [license(s): MIT]
+  corser@2.0.1 [license(s): MIT]
+  ecstatic@3.2.1 [license(s): MIT]
+  encoding-down@5.0.4 [license(s): MIT]
+  es6-promise@4.2.4 [license(s): MIT]
+  eventemitter3@3.1.0 [license(s): MIT]
+  follow-redirects@1.5.7 [license(s): MIT]
+  http-proxy@1.17.0 [license(s): MIT]
+  http-server@0.11.1 [license(s): MIT]
+  immediate@3.2.3 [license(s): MIT]
+  isomorphic-fetch@2.2.1 [license(s): MIT]
+  level-js@3.0.0 [license(s): MIT]
+  leveldown@4.0.1 [license(s): BSD, MIT]
+  levelgraph@2.1.1 [license(s): BSD, MIT]
+  levelgraph-jsonld@1.2.0 [license(s): MIT]
+  levelgraph-n3@2.1.0 [license(s): MIT]
+  levelup@3.1.1 [license(s): MIT]
+  vue@2.5.17 [license(s): MIT]
+
+  LICENSES: Apache, Apache-2.0, BSD, MIT
